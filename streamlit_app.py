@@ -14,7 +14,15 @@ os.environ["OPENAI_API_KEY"]=st.secrets["OPENAI_API_KEY"]
 st.write(OPENAI_API_KEY)
 # Set session timeout (30 minutes)
 SESSION_TIMEOUT = 1800
-
+# Pass the key to the OpenAI client (v1.x+)
+client = openai.OpenAI(api_key=OPENAI_API_KEY)  # explicit, or rely on env variable
+ 
+# Example: Make a simple API call
+try:
+    response = client.models.list()  # List available models
+    st.write("Models:", [model.id for model in response.data])
+except Exception as e:
+    st.error(f"OpenAI API error: {e}")
 # # Initialize session state if not already set
 # if "logged_in" not in st.session_state:
 #     st.session_state.logged_in = False
