@@ -1,2 +1,9 @@
 streamlit
 openai
+langchain
+sqlite3
+os
+json
+re
+datetime
+hashlib
