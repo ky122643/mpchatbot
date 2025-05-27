@@ -1,56 +1,63 @@
-import streamlit as st
-from openai import OpenAI
-from auth import login
-from chatbot import chatbot_page
-from tutorui import display_tutor_ui
+from dotenv import load_dotenv
 
-# initialize session state variables
-if "username" not in st.session_state:
-    st.session_state.username = None
-if "role" not in st.session_state:
-    st.session_state.role = None
+load_dotenv(override=True)
+
+import streamlit as st
+import time
+from auth import login_and_register
+from tutorui import display_tutor_ui
+from chatbot import chatbot_page
+# from dotenv import load_dotenv
+from openai import OpenAI
+# load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")  # in environment variables
+#openai_api_key = open('api_key.txt', 'r')
+client = OpenAI(api_key=openai_api_key)
+# # st.set_page_config(page_title="Login System", page_icon="🔒", layout="centered")
+st.write(openai_api_key)
+# Set session timeout (30 minutes)
+SESSION_TIMEOUT = 1800
+
+# Initialize session state if not already set
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-if "page" not in st.session_state:
-    st.session_state.page = "main"
-
-def go_to_main():
-    st.session_state.page = "main"
-
-def go_to_chatbot():
-    st.session_state.page = "chatbot"
-
-def go_to_tutorui():
-    st.session_state.page = "tutorui"
-
-def logout():
-    st.session_state.username = None
-    st.session_state.role = None
+if "last_active" not in st.session_state:
+    st.session_state.last_active = time.time()
+        
+# Check for session expiration
+if st.session_state.logged_in and time.time() - st.session_state.last_active > SESSION_TIMEOUT:
+    st.warning("🔒 Session expired after 30 minutes of inactivity. Please log in again.")
     st.session_state.logged_in = False
-    st.session_state.page = "main"
+    st.session_state.username = ""
+    st.session_state.role = ""
+    st.rerun()
 
-# login logic
+    st.set_page_config(page_title="Login System", page_icon="🔒", layout="centered")
+
+# Login Page
 if not st.session_state.logged_in:
-    st.title("Login Page")
-    if login():  # calls the login function from auth.py
-        st.session_state.logged_in = True
-        # assign the username and role after successful login
-        st.session_state.username = st.session_state.username or "guest"
-        role = st.session_state.role  # Ensure role is set by the `login` function
-        if role == "student":
-            go_to_chatbot()
-        elif role == "tutor":
-            go_to_tutorui()
-else:
-    # sidebar logout button
-    st.sidebar.button("Logout", on_click=logout)
+    st.title("🔒 Welcome! Please Login or Register")
+    login_successful = login_and_register()
 
-    # route pages based on role
-    role = st.session_state.role
-    if st.session_state.page == "chatbot" and role == "student":
-        chatbot_page()
-    elif st.session_state.page == "tutorui" and role == "tutor":
+    if login_successful:
+        st.rerun()  # rerun to trigger login display immediately
+
+else:
+    st.sidebar.success(f"✅ Logged in as {st.session_state.username} ({st.session_state.role})")
+
+        # Add a Logout button
+    if st.sidebar.button("Logout"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.rerun()
+
+        # Role-based navigation
+    if st.session_state.role == "tutor":
         display_tutor_ui()
+    elif st.session_state.role == "student":
+        chatbot_page()
     else:
-        st.title("Invalid Page")
-        st.write("You do not have access to this page.")
+        st.error("Unknown role. Please contact administrator.")
+
+# if __name__ == "__main__":
+#    main()
