@@ -7,9 +7,9 @@ from openai import OpenAI
 import os
 os.environ["OPENAI_API_KEY"]=st.secrets["OPENAI_API_KEY"]
 # load_dotenv()
-openai_api_key = os.getenv("OPENAI_API_KEY")  # in environment variables
-#openai_api_key = open('api_key.txt', 'r')
-client = OpenAI(api_key=OPENAI_API_KEY)
+# openai_api_key = os.getenv("OPENAI_API_KEY")  # in environment variables
+# #openai_api_key = open('api_key.txt', 'r')
+# client = OpenAI(api_key=OPENAI_API_KEY)
 # # st.set_page_config(page_title="Login System", page_icon="🔒", layout="centered")
 st.write(OPENAI_API_KEY)
 # Set session timeout (30 minutes)
