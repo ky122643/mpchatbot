@@ -1,10 +1,10 @@
 import streamlit as st
 from openai import OpenAI
 apikey=st.secrets["OPENAI_API_KEY"]
-st.write(apikey)
+st.write('success' if apikey else 'error')
 # Pass the key to the OpenAI client (v1.x+)
 
-client = openai.OpenAI(api_key=apikey)  # explicit, or rely on env variable
+client = OpenAI(api_key=apikey)  # explicit, or rely on env variable
  
 # Example: Make a simple API call
 
