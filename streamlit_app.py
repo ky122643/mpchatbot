@@ -1,20 +1,17 @@
-from dotenv import load_dotenv
-
-load_dotenv(override=True)
-
 import streamlit as st
 import time
 from auth import login_and_register
 from tutorui import display_tutor_ui
 from chatbot import chatbot_page
-# from dotenv import load_dotenv
 from openai import OpenAI
+import os
+os.environ["OPENAI_API_KEY"]=st.secrets["OPENAI_API_KEY"]
 # load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")  # in environment variables
 #openai_api_key = open('api_key.txt', 'r')
-client = OpenAI(api_key=openai_api_key)
+client = OpenAI(api_key=OPENAI_API_KEY)
 # # st.set_page_config(page_title="Login System", page_icon="🔒", layout="centered")
-st.write(openai_api_key)
+st.write(OPENAI_API_KEY)
 # Set session timeout (30 minutes)
 SESSION_TIMEOUT = 1800
 
