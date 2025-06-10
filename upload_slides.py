@@ -1,95 +1,66 @@
 import os
 import re
+import json
 import streamlit as st
-import tempfile
 import fitz  # PyMuPDF
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
-from langchain.docstore.document import Document
 from dotenv import load_dotenv
 
 load_dotenv()
 
 UPLOAD_FOLDER = "uploaded_slides"
-VECTOR_DB_DIR = "slides_index"
-
-embeddings = OpenAIEmbeddings()
-vectordb = Chroma(
-    collection_name="mp_collection",
-    persist_directory=VECTOR_DB_DIR,
-    embedding_function= embeddings
-)
+INDEX_FILE = "slides_index.json"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def extract_text_from_pdf(pdf_path):
     doc = fitz.open(pdf_path)
     texts = []
-    for page in doc:
+    for page_num, page in enumerate(doc, start=1):
         blocks = page.get_text("blocks")
-        blocks.sort(key=lambda b: (b[1], b[0]))
+        blocks.sort(key=lambda b: (b[1], b[0]))  # top to bottom, then left to right
         page_text = "\n".join(block[4].strip() for block in blocks if block[4].strip())
-        texts.append(page_text)
+        texts.append({"page": page_num, "text": clean_text(page_text)})
     return texts
-
-def split_into_chunks(texts, filename):
-    splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
-    chunks = []
-    for i, text in enumerate(texts):
-        docs = splitter.create_documents([text], metadatas=[{"source": filename, "page": i + 1}])
-        chunks.extend(docs)
-    return chunks
 
 def clean_text(text):
     text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"•", "-", text)
+    text = text.replace("•", "-")
     return text.strip()
+
+def save_indexed_data(filename, pages):
+    # Load existing index
+    if os.path.exists(INDEX_FILE):
+        with open(INDEX_FILE, "r", encoding="utf-8") as f:
+            index_data = json.load(f)
+    else:
+        index_data = []
+
+    # Add new entry
+    index_data.append({
+        "filename": filename,
+        "pages": pages
+    })
+
+    # Save updated index
+    with open(INDEX_FILE, "w", encoding="utf-8") as f:
+        json.dump(index_data, f, indent=2)
 
 def upload_and_index_pdf():
     st.title("📚 Upload Lecture Slides")
 
     uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
     if uploaded_file:
-        #with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf", dir=UPLOAD_FOLDER) as tmp_file:
-            #tmp_file.write(uploaded_file.getvalue())
-            #tmp_file_path = tmp_file.name
-
-        #with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf", dir=UPLOAD_FOLDER) as tmp_file:
-            #tmp_file.write(uploaded_file.getvalue())
-            #tmp_file_path = tmp_file.name  # Save the path
-            # File is now closed and usable
-
-        # Define full path for saving uploaded file
         upload_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
 
-        # Save the uploaded PDF directly (no tempfile needed)
+        # Save uploaded file
         with open(upload_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
 
-
         st.success(f"✅ {uploaded_file.name} uploaded successfully!")
 
-        with st.spinner("🔍 Extracting text and updating vector store..."):
-            #page_texts = extract_text_from_pdf(tmp_file_path)
+        with st.spinner("🔍 Extracting text and saving to index..."):
             page_texts = extract_text_from_pdf(upload_path)
-            docs = [
-                Document(page_content=page, metadata={"source": uploaded_file.name, "page": i + 1}) 
-                for i, page in enumerate(page_texts)
-                ]
+            save_indexed_data(uploaded_file.name, page_texts)
 
-            # Index with ChromaDB
-            embeddings = OpenAIEmbeddings()
-            #vectordb = Chroma(collection_name="mp_collection",persist_directory=VECTOR_DB_DIR, embedding_function=embeddings)
-            #vectordb.add_documents(docs)
-            #vectordb.persist()
-            vectordb = Chroma(
-            collection_name="mp_collection",
-            persist_directory=VECTOR_DB_DIR,
-            embedding_function=embeddings
-            )
-            vectordb.add_documents(docs)
-            vectordb.persist()
-
-        st.success("✅ Lecture slides added to the vector store successfully!")
+        st.success("✅ Lecture slides indexed successfully!")
 
