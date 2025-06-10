@@ -10,7 +10,8 @@ apikey=st.secrets["OPENAI_API_KEY"]
 # st.write('success' if apikey else 'error')
 # Pass the key to the OpenAI client (v1.x+)
 client = OpenAI(api_key=apikey)  # explicit, or rely on env variable
- 
+
+chatbot_page(client)
 # Example: Make a simple API call
 #try:
     #response = client.models.list()  # List available models
