@@ -46,7 +46,7 @@ grading_criteria = load_file("grading_criteria.txt")
 # client = OpenAI(api_key=openai_api_key)
 
 # function to evaluate performance
-def evaluate_performance(questions):
+def evaluate_performance(questions, client):
     performance_prompt = f"""
     {grading_criteria}
 
@@ -253,7 +253,7 @@ def chatbot_page(client):
     if st.button("Save and End Conversation") and not st.session_state.conversation_ended and not st.session_state.is_review_mode:
         st.markdown("### Analyzing your performance...")
         st.session_state.conversation_ended = True
-        feedback, grade = evaluate_performance(st.session_state.user_questions)
+        feedback, grade = evaluate_performance(st.session_state.user_questions, client)
         save_conversation(st.session_state.username, st.session_state.messages)
         save_student_data(st.session_state.username, grade, st.session_state.user_questions, feedback)
         st.markdown(f"**Feedback:** {feedback.strip()}")
