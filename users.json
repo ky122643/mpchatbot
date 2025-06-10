@@ -6,5 +6,27 @@
     "tutor": {
         "role": "tutor",
         "password": "tutor"
+    },
+    "tutor_1": {
+        "password": "99fe2cc33ba7a1475286e1dec745abe1dfb1f4bcc361f34ae7953712a9d4269a",
+        "role": "student"
+    },
+    "tutor_2": {
+        "password": "bf19200669d3526cacc93ebbe7eb7a17bc88236f7ae4f6219842acf0af8ea03c",
+        "role": "tutor"
+    },
+    "student12": {
+        "password": "fc08016060bfa59c19fe74987b26de306a921d78bc317c4120ffabc4bf92ac3c",
+        "role": "student"
+    },
+    "001": {
+        "email": "2300476e@student.tp.edu.sg",
+        "password": "dee57cd0c1d967776da5fe2d059fb4350d969c57e7b66a4b831bd9ee09a098dd",
+        "role": "student"
+    },
+    "002": {
+        "email": "123@gmail.com",
+        "password": "2d335e90d224c5a343e9e9ebf20f32f4f4f282249b7dd79bd6442b47f6f9e2c1",
+        "role": "student"
     }
 }
