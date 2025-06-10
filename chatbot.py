@@ -6,7 +6,6 @@ import re
 from datetime import datetime
 from openai import OpenAI
 # from dotenv import load_dotenv
-
 # load_dotenv(override=True)
 db_path = "datab.db"
 conn = sqlite3.connect(db_path, check_same_thread=False)
