@@ -11,7 +11,6 @@ apikey=st.secrets["OPENAI_API_KEY"]
 # Pass the key to the OpenAI client (v1.x+)
 client = OpenAI(api_key=apikey)  # explicit, or rely on env variable
 
-chatbot_page(client)
 # Example: Make a simple API call
 #try:
     #response = client.models.list()  # List available models
@@ -57,3 +56,5 @@ else:
         chatbot_page()
     else:
         st.error("Unknown role. Please contact administrator.")
+
+chatbot_page(client)
