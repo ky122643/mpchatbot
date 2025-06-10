@@ -165,7 +165,7 @@ def reset_conversation():
     st.session_state.conversation_ended = False
 
 # chatbot UI
-def chatbot_page(client):
+def chatbot_page():
     if "conversations" not in st.session_state:
         st.session_state.conversations = []
 
