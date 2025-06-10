@@ -42,17 +42,10 @@ def display_tutor_ui():
         "Feedback": entry.get("feedback")
         } for entry in student_data]
 
-       df = pd.DataFrame(table_data)
-
-       # Show the actual column names to debug
-       st.write("📋 Available columns:", df.columns.tolist())
-
-       # Ensure Timestamp column exists before processing
-       if 'Timestamp' in df.columns:
-          df['Timestamp'] = pd.to_datetime(df['Timestamp'], errors='coerce')
-          df = df.sort_values(by="Timestamp", ascending=False)
-      else:
-          st.warning("⚠️ 'Timestamp' column is missing from student data.")
+        df = pd.DataFrame(table_data)
+        st.write("📋 Available columns:", df.columns.tolist())
+        df['Timestamp'] = pd.to_datetime(df['Timestamp'], errors='coerce')
+        df = df.sort_values(by="Timestamp", ascending=False)
 
         show_top_5 = st.checkbox("Show Only Top 5 Rows", value=True)
         search_query = st.text_input("Search student data by student name, grade, or ID", "").strip().lower()
