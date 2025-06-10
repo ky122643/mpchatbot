@@ -34,17 +34,25 @@ def display_tutor_ui():
     with tab1:
         # Format student data
         table_data = [{
-            "ID": entry["id"],
-            "Student": entry["username"],
-            "Timestamp": entry["timestamp"],
-            "Grade": entry["grade"],
-            "Questions": entry["questions"],
-            "Feedback": entry["feedback"]
+        "ID": entry.get("id"),
+        "Student": entry.get("username"),
+        "Timestamp": entry.get("timestamp"),  # could be None or missing
+        "Grade": entry.get("grade"),
+        "Questions": entry.get("questions"),
+        "Feedback": entry.get("feedback")
         } for entry in student_data]
 
-        df = pd.DataFrame(table_data)
-        df['Timestamp'] = pd.to_datetime(df['Timestamp'], errors='coerce')
-        df = df.sort_values(by="Timestamp", ascending=False)
+       df = pd.DataFrame(table_data)
+
+       # Show the actual column names to debug
+       st.write("📋 Available columns:", df.columns.tolist())
+
+       # Ensure Timestamp column exists before processing
+       if 'Timestamp' in df.columns:
+          df['Timestamp'] = pd.to_datetime(df['Timestamp'], errors='coerce')
+          df = df.sort_values(by="Timestamp", ascending=False)
+      else:
+          st.warning("⚠️ 'Timestamp' column is missing from student data.")
 
         show_top_5 = st.checkbox("Show Only Top 5 Rows", value=True)
         search_query = st.text_input("Search student data by student name, grade, or ID", "").strip().lower()
