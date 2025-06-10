@@ -53,8 +53,8 @@ else:
     if st.session_state.role == "tutor":
         display_tutor_ui()
     elif st.session_state.role == "student":
-        chatbot_page()
+        chatbot_page(client)
     else:
         st.error("Unknown role. Please contact administrator.")
 
-    chatbot_page(client)
+    
