@@ -3,9 +3,8 @@ import re
 import json
 import streamlit as st
 import fitz  # PyMuPDF
-from dotenv import load_dotenv
-
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 
 UPLOAD_FOLDER = "uploaded_slides"
 INDEX_FILE = "slides_index.json"
