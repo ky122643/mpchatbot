@@ -115,44 +115,12 @@ def load_conversations(username):
 
     conversations = []
     for result in results:
-        raw_messages = result[0]
-        if not raw_messages:
-            continue
+        raw_json = result[0]
         try:
-            messages = []
-            current_role = None
-            current_content = []
-            
-            for line in raw_messages.split("\n"):
-                if line.startswith("user:"):
-                    if current_role:
-                        messages.append({
-                            "role": current_role,
-                            "content": "\n".join(current_content).strip()
-                        })
-                    current_role = "user"
-                    current_content = [line.split(": ", 1)[1]]
-                elif line.startswith("assistant:"):
-                    if current_role:
-                        messages.append({
-                            "role": current_role,
-                            "content": "\n".join(current_content).strip()
-                        })
-                    current_role = "assistant"
-                    current_content = [line.split(": ", 1)[1]]
-                else:
-                    current_content.append(line.strip())
-            
-            if current_role:
-                messages.append({
-                    "role": current_role,
-                    "content": "\n".join(current_content).strip()
-                })
-
+            messages = json.loads(raw_json)
             conversations.append(messages)
-        except Exception as e:
-            st.error(f"Error processing conversation data: {e}")
-            continue
+        except json.JSONDecodeError as e:
+            st.error(f"Failed to load conversation: {e}")
     return conversations
 
 # reset conversation
