@@ -81,7 +81,9 @@ def display_tutor_ui():
         # 📂 Expandable Conversation Viewer
         st.markdown("---")
         st.subheader("📂 Click to Expand Conversation Log")
+        conversation = json.loads(matching_log["messages"])  # 👈 this line needs `import json`
 
+        
         # Collect IDs and usernames for selection
         record_options = [
             f"{entry['ID']} - {entry['Student']} ({entry['Timestamp']})"
