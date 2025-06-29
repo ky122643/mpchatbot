@@ -78,8 +78,6 @@ def display_tutor_ui():
             # Add dropdown to select a student row by ID
             selected_id = st.selectbox("🔍 Select a Student ID to view full details:", filtered_df["ID"].tolist())
             selected_row = filtered_df[filtered_df["ID"] == selected_id].iloc[0]
-
-             matching_logs = [entry for entry in conversation_data if str(entry.get('username')) == str(selected_row.get('Student'))]
             
             # Expandable section for full details
             with st.expander(f"📄 Full Details for {selected_row['Student']} (ID: {selected_row['ID']})"):
@@ -89,11 +87,10 @@ def display_tutor_ui():
                 st.markdown("**Feedback:**")
                 st.info(selected_row['Feedback'])
 
-                # Now show full conversation if available
-                matching_logs = [entry for entry in conversation_data if str(entry.get('username')) == str(selected_row.get('Student'))]
+                matching_logs = [entry for entry in conversation_data if str(entry.get("username")) == str(selected_row.get("Student"))]
 
                 if matching_logs:
-                    log = matching_logs[0]
+                    log = matching_logs[-1]
                     st.markdown(f"**Conversation on {log['timestamp']}**")
 
                 # Show chat style
