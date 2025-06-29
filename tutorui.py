@@ -54,7 +54,6 @@ def display_tutor_ui():
         else: 
             st.warning (" 'Timestamp' column missing in student data.")
 
-        show_top_5 = st.checkbox("Show Only Top 5 Rows", value=True)
         search_query = st.text_input("Search student data by student name, grade, or ID", "").strip().lower()
 
         # Filter data
@@ -70,7 +69,7 @@ def display_tutor_ui():
         if show_top_5 and not filtered_df.empty:
             filtered_df = filtered_df.head(5)
 
-        st.write("### Student Data (for best viewing, download and top left align):")
+        st.write("### Student Data (for best viewing, download and top right align):")
         if not filtered_df.empty:
             st.dataframe(filtered_df[["ID", "Student", "Timestamp", "Grade", "Questions", "Feedback"]],
                          width=1000, height=400)
@@ -109,7 +108,8 @@ def display_tutor_ui():
                     st.markdown(f"**{current_role.capitalize()}:** {' '.join(current_message)}")
             else:
                 st.write("No conversation log found for the given ID.")
-
+                
+            show_top_5 = st.checkbox("Show Only Top 5 Rows", value=True)
     with tab2:
         st.subheader("📊 Performance Analysis")
         student_df = pd.DataFrame(student_data)
