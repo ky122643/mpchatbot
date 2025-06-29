@@ -55,7 +55,8 @@ def display_tutor_ui():
             st.warning (" 'Timestamp' column missing in student data.")
 
         search_query = st.text_input("Search student data by student name, grade, or ID", "").strip().lower()
-
+        show_top_5 = st.checkbox("Show Only Top 5 Rows", value=True)
+        
         # Filter data
         filtered_data = [
             entry for entry in table_data
@@ -109,7 +110,6 @@ def display_tutor_ui():
             else:
                 st.write("No conversation log found for the given ID.")
                 
-            show_top_5 = st.checkbox("Show Only Top 5 Rows", value=True)
     with tab2:
         st.subheader("📊 Performance Analysis")
         student_df = pd.DataFrame(student_data)
