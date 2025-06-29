@@ -87,6 +87,7 @@ def display_tutor_ui():
                 st.markdown("**Feedback:**")
                 st.info(selected_row['Feedback'])
 
+                conversation_search_id = st.text_input("Search conversation logs by ID", "").strip()
                 if conversation_search_id:
                     matching_logs = [entry for entry in conversation_data if str(entry["id"]) == conversation_search_id]
                     if matching_logs:
