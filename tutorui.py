@@ -45,7 +45,7 @@ def display_tutor_ui():
         df = pd.DataFrame(table_data)
         
         # Debug step: print columns to check
-        st.write("📋 Available columns:", df.columns.tolist())
+        # st.write("📋 Available columns:", df.columns.tolist())
         # st.write(list(df.columns))
 
         if "Timestamp" in df.columns: 
