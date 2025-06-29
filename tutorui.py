@@ -78,80 +78,38 @@ def display_tutor_ui():
         else:
             st.write("No data found for the current query.")
 
-        # 📂 Expandable Conversation Viewer
-        st.markdown("---")
-        st.subheader("📂 Click to Expand Conversation Log")
-        conversation = json.loads(matching_log["messages"])  # 👈 this line needs `import json`
+        #st.markdown('##')
+        #st.write("### Conversation Finder:")
+        #conversation_search_id = st.text_input("Search conversation logs by ID", "").strip()
 
-        
-        # Collect IDs and usernames for selection
-        record_options = [
-            f"{entry['ID']} - {entry['Student']} ({entry['Timestamp']})"
-            for entry in filtered_data
-        ]
-
-        # If any records are available
-        if record_options:
-            selected_record = st.selectbox("Select a student record to view full conversation", record_options)
-    
-            selected_id = int(selected_record.split(" - ")[0])
-
-            # Find the matching conversation by ID
-            matching_logs = [entry for entry in conversation_data if entry['id'] == selected_id]
-
-            if matching_logs:
-                log = matching_logs[0]
-                st.write(f"### Conversation Log for ID {log['id']} - {log['username']} ({log['timestamp']}):")
-
-                # Parse and show messages in expanders
-                try:
-                    messages = json.loads(log['messages'])  # use JSON since you stored as json.dumps
-
-                    for idx, msg in enumerate(messages):
-                        role = msg.get("role", "unknown").capitalize()
-                        content = msg.get("content", "")
-                        with st.expander(f"{role} Message {idx + 1}"):
-                            st.markdown(content)
-                except Exception as e:
-                    st.error(f"❌ Failed to parse conversation: {e}")
-            else:
-                st.warning("No matching conversation found.")
-        else:
-            st.info("No student data to select.")
-
-
-        st.markdown('##')
-        st.write("### Conversation Finder:")
-        conversation_search_id = st.text_input("Search conversation logs by ID", "").strip()
-
-        if conversation_search_id:
-            matching_logs = [entry for entry in conversation_data if str(entry['id']) == conversation_search_id]
-            if matching_logs:
-                log = matching_logs[0]
-                st.write(f"### Conversation Log for ID {log['id']} - {log['username']} ({log['timestamp']}):")
+        #if conversation_search_id:
+            #matching_logs = [entry for entry in conversation_data if str(entry['id']) == conversation_search_id]
+            #if matching_logs:
+                #log = matching_logs[0]
+                #st.write(f"### Conversation Log for ID {log['id']} - {log['username']} ({log['timestamp']}):")
 
                 # Parse messages
-                conversation_lines = log["messages"].split("\n")
-                current_role, current_message = None, []
+                #conversation_lines = log["messages"].split("\n")
+                #current_role, current_message = None, []
 
-                for line in conversation_lines:
-                    if line.startswith("user:"):
-                        if current_message:
-                            st.markdown(f"**{current_role.capitalize()}:** {' '.join(current_message)}")
-                        current_role = "user"
-                        current_message = [line[5:].strip()]
-                    elif line.startswith("assistant:"):
-                        if current_message:
-                            st.markdown(f"**{current_role.capitalize()}:** {' '.join(current_message)}")
-                        current_role = "assistant"
-                        current_message = [line[10:].strip()]
-                    else:
-                        current_message.append(line.strip())
+                #for line in conversation_lines:
+                    #if line.startswith("user:"):
+                        #if current_message:
+                            #st.markdown(f"**{current_role.capitalize()}:** {' '.join(current_message)}")
+                        #current_role = "user"
+                        #current_message = [line[5:].strip()]
+                    #elif line.startswith("assistant:"):
+                        #if current_message:
+                            #st.markdown(f"**{current_role.capitalize()}:** {' '.join(current_message)}")
+                        #current_role = "assistant"
+                        #current_message = [line[10:].strip()]
+                    #else:
+                        #current_message.append(line.strip())
 
-                if current_message:
-                    st.markdown(f"**{current_role.capitalize()}:** {' '.join(current_message)}")
-            else:
-                st.write("No conversation log found for the given ID.")
+                #if current_message:
+                    #st.markdown(f"**{current_role.capitalize()}:** {' '.join(current_message)}")
+            #else:
+                #st.write("No conversation log found for the given ID.")
                 
     with tab2:
         st.subheader("📊 Performance Analysis")
