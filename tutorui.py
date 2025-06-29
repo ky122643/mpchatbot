@@ -55,6 +55,26 @@ def display_tutor_ui():
         else: 
             st.warning (" 'Timestamp' column missing in student data.")
 
+         st.write("📋 Click a student below to expand details")
+
+        for i, row in df.iterrows():
+            with st.expander(f"🧑 {row['Student']} | Grade: {row['Grade']} | Submitted: {row['Timestamp']}"):
+                st.markdown("**📝 Questions Asked:**")
+                st.code(row["Questions"], language="markdown")
+
+                st.markdown("**💬 Feedback:**")
+                st.info(row["Feedback"])
+
+            # Optionally, also include full conversation here
+                matching_logs = [entry for entry in conversation_data if entry["id"] == row["ID"]]
+                if matching_logs:
+                    messages = json.loads(matching_logs[0]["messages"])
+                    st.markdown("**🗨️ Conversation Transcript:**")
+                    for msg in messages:
+                        st.markdown(f"**{msg['role'].capitalize()}:** {msg['content']}")
+                else:
+                    st.warning("No conversation log available.")
+        
         search_query = st.text_input("Search student data by student name, grade, or ID", "").strip().lower()
         show_top_5 = st.checkbox("Show Only Top 5 Rows", value=True)
         
@@ -76,29 +96,29 @@ def display_tutor_ui():
             st.dataframe(filtered_df[["ID", "Student", "Timestamp", "Grade", "Questions", "Feedback"]],
                          width=1000, height=400)
             # Add dropdown to select a student row by ID
-            selected_id = st.selectbox("🔍 Select a Student ID to view full details:", filtered_df["ID"].tolist())
-            selected_row = filtered_df[filtered_df["ID"] == selected_id].iloc[0]
+            # selected_id = st.selectbox("🔍 Select a Student ID to view full details:", filtered_df["ID"].tolist())
+            # selected_row = filtered_df[filtered_df["ID"] == selected_id].iloc[0]
 
             # Expandable section for full details
-            with st.expander(f"📄 Full Details for {selected_row['Student']} (ID: {selected_row['ID']})"):
-                st.markdown(f"**Grade:** {selected_row['Grade']}")
-                st.markdown("**Questions Asked:**")
-                st.code(selected_row['Questions'], language="markdown")
-                st.markdown("**Feedback:**")
-                st.info(selected_row['Feedback'])
+           #with st.expander(f"📄 Full Details for {selected_row['Student']} (ID: {selected_row['ID']})"):
+                #st.markdown(f"**Grade:** {selected_row['Grade']}")
+                #st.markdown("**Questions Asked:**")
+                #st.code(selected_row['Questions'], language="markdown")
+                #st.markdown("**Feedback:**")
+                #st.info(selected_row['Feedback'])
 
                 # Now show full conversation if available
-                matching_logs = [entry for entry in conversation_data if entry['id'] == selected_row['ID']]
-                if matching_logs:
-                    log = matching_logs[0]
-                    st.markdown(f"**Conversation on {log['timestamp']}**")
+                #matching_logs = [entry for entry in conversation_data if entry['id'] == selected_row['ID']]
+                #if matching_logs:
+                    #log = matching_logs[0]
+                    #st.markdown(f"**Conversation on {log['timestamp']}**")
 
                 # Show chat style
-                messages = json.loads(log["messages"])
-                for msg in messages:
-                    st.markdown(f"**{msg['role'].capitalize()}:** {msg['content']}")
-                else:
-                    st.warning("No conversation log found for this student.")
+                #messages = json.loads(log["messages"])
+                #for msg in messages:
+                    #st.markdown(f"**{msg['role'].capitalize()}:** {msg['content']}")
+                #else:
+                    #st.warning("No conversation log found for this student.")
                     
         else:
             st.write("No data found for the current query.")
