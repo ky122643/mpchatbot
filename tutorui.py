@@ -79,6 +79,8 @@ def display_tutor_ui():
             selected_id = st.selectbox("🔍 Select a Student ID to view full details:", filtered_df["ID"].tolist())
             selected_row = filtered_df[filtered_df["ID"] == selected_id].iloc[0]
 
+             matching_logs = [entry for entry in conversation_data if str(entry.get('username')) == str(selected_row.get('Student'))]
+            
             # Expandable section for full details
             with st.expander(f"📄 Full Details for {selected_row['Student']} (ID: {selected_row['ID']})"):
                 st.markdown(f"**Grade:** {selected_row['Grade']}")
