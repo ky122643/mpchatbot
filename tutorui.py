@@ -46,7 +46,7 @@ def display_tutor_ui():
         
         # Debug step: print columns to check
         # st.write("📋 Available columns:", df.columns.tolist())
-        # st.write(list(df.columns))
+        st.write(list(df.columns))
 
         if "Timestamp" in df.columns: 
             df['Timestamp'] = pd.to_datetime(df['Timestamp'], errors='coerce')
