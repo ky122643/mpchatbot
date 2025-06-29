@@ -88,7 +88,8 @@ def display_tutor_ui():
                 st.info(selected_row['Feedback'])
 
                 # Now show full conversation if available
-                matching_logs = [entry for entry in conversation_data if entry['id'] == selected_row['ID']]
+                matching_logs = [entry for entry in conversation_data if str(entry.get('username')) == str(selected_row.get('Student'))]
+
                 if matching_logs:
                     log = matching_logs[0]
                     st.markdown(f"**Conversation on {log['timestamp']}**")
