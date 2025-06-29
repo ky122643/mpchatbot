@@ -87,7 +87,7 @@ def display_tutor_ui():
                 st.markdown("**Feedback:**")
                 st.info(selected_row['Feedback'])
 
-                matching_logs = [entry for entry in conversation_data if str(entry.get("username")) == str(selected_row.get("Student"))]
+                matching_logs = [entry for entry in conversation_data if str(entry["id"]) == conversation_search_id]
 
                 if matching_logs:
                     log = matching_logs[-1]
