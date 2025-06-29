@@ -71,7 +71,7 @@ def display_tutor_ui():
         if show_top_5 and not filtered_df.empty:
             filtered_df = filtered_df.head(5)
 
-        st.write("### Student Data (for best viewing, download and top right align):")
+        st.write("#### Student Data (for best viewing, download and top right align):")
         if not filtered_df.empty:
             st.dataframe(filtered_df[["ID", "Student", "Timestamp", "Grade", "Questions", "Feedback"]],
                          width=1000, height=400)
