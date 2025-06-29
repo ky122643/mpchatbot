@@ -87,7 +87,23 @@ def display_tutor_ui():
                 st.markdown("**Feedback:**")
                 st.info(selected_row['Feedback'])
 
-                matching_logs = [entry for entry in conversation_data if str(entry["id"]) == conversation_search_id]
+                if conversation_search_id:
+                    matching_logs = [entry for entry in conversation_data if str(entry["id"]) == conversation_search_id]
+                    if matching_logs:
+                        log = matching_logs[0]
+
+                    # Safely load messages
+                    if "messages" in log:
+                        messages = json.loads(log["messages"])
+                        st.write(f"### Conversation Log for ID {log['id']} - {log['username']} ({log['timestamp']}):")
+                        for msg in messages:
+                            role = msg.get("role", "unknown")
+                            content = msg.get("content", "")
+                            st.chat_message(role).markdown(content)
+                    else:
+                        st.warning("⚠️ No conversation messages found for this student.")
+                else:
+                    st.info("No conversation log found for the given ID.")
 
                 if matching_logs:
                     log = matching_logs[-1]
