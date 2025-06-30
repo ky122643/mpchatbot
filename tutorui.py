@@ -1,6 +1,7 @@
 import sqlite3
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 import json
 import openai
 from datetime import datetime
