@@ -149,7 +149,7 @@ def display_tutor_ui():
                     st.markdown(f"**📊 Overall Grade (Average):** {overall_grade}")
                     st.markdown(f"**📅 Latest Submission Date:** {latest_record['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
                     st.markdown(f"**📝 Latest Grade:** {latest_record['grade']}")
-                    st.markdown(f"**Questions Asked:** {latest_record['questions']}")
+                    st.markdown(f"**Questions Asked:**")
                     questions_list = latest_record['questions'].split("\n")  # Assuming newline-separated questions
                     for q in questions_list:
                         if q.strip():  # Skip empty lines
