@@ -2,3 +2,4 @@ streamlit
 openai
 PyMuPDF
 pandas
+matplotlib.pyplot
