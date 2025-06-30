@@ -158,24 +158,24 @@ def display_tutor_ui():
                 st.markdown(f"**❓ Avg Questions per Session:** {avg_questions:.2f}")
 
                 # Optional: Feedback Summary (if many records)
-                all_feedback = student_records["feedback"].dropna().tolist()
-                if len(all_feedback) > 1:
-                    combined_feedback = "\n".join(all_feedback)
-                    st.markdown("**📝 Overall Feedback Summary:**")
-                    try:
-                        from openai import OpenAI
-                        client = OpenAI()
-                        response = client.chat.completions.create(
-                            model="gpt-4",
-                            messages=[
-                                {"role": "system", "content": "Summarize the following feedback:"},
-                                {"role": "user", "content": combined_feedback}
-                            ]
-                        )
-                        st.info(response.choices[0].message.content)
-                    except Exception as e:
-                        st.warning("Unable to summarize feedback. Check OpenAI config.")
-                        st.code(str(e))
+                #all_feedback = student_records["feedback"].dropna().tolist()
+                #if len(all_feedback) > 1:
+                    #combined_feedback = "\n".join(all_feedback)
+                    #st.markdown("**📝 Overall Feedback Summary:**")
+                    #try:
+                        #from openai import OpenAI
+                        #client = OpenAI()
+                        #response = client.chat.completions.create(
+                            #model="gpt-4",
+                            #messages=[
+                                #{"role": "system", "content": "Summarize the following feedback:"},
+                                #{"role": "user", "content": combined_feedback}
+                            #]
+                        #)
+                        #st.info(response.choices[0].message.content)
+                    #except Exception as e:
+                        #st.warning("Unable to summarize feedback. Check OpenAI config.")
+                        #st.code(str(e))
         else:
             st.info("No student data available for analysis.")
 
