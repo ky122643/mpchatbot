@@ -130,44 +130,55 @@ def display_tutor_ui():
             selected_student = st.selectbox("Select a student", student_names)
 
             if selected_student:
-                # latest_record = student_df[student_df["username"] == selected_student].iloc[-1]
-                student_records = student_df[student_df["username"] == selected_student].copy()
+            student_records = student_df[student_df["username"] == selected_student].sort_values("timestamp")
 
-                grade_map = {'A': 4, 'B': 3, 'C': 2, 'D': 1}
-                reverse_map = {v: k for k, v in grade_map.items()}
+            latest_record = student_records.iloc[-1]
+            st.markdown(f"**Latest Submission Date:** {latest_record['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
+            st.markdown(f"**Latest Grade:** {latest_record['grade']}")
+            st.markdown(f"**Latest Questions Asked:** {latest_record['questions']}")
+            st.markdown("**Latest Feedback:**")
+            st.info(latest_record['feedback'])
 
-                student_records = student_records[student_records["grade"].isin(grade_map.keys())]
-                student_records["grade_num"] = student_records["grade"].map(grade_map)
+            # Average Grade
+            grade_map = {"A": 4, "B": 3, "C": 2, "D": 1}
+            reverse_map = {v: k for k, v in grade_map.items()}
+            student_records["grade_value"] = student_records["grade"].map(grade_map)
+            avg_value = student_records["grade_value"].mean()
+            avg_letter = reverse_map.get(round(avg_value), "N/A")
+            st.markdown(f"**📊 Average Grade:** {avg_letter}")
 
-                if not student_records.empty:
-                    # Average grade calculation
-                    avg_score = student_records["grade_num"].mean()
-                    rounded_avg = round(avg_score)
-                    overall_grade = reverse_map.get(rounded_avg, "N/A")
+            # Grade Trend
+            st.write("### 📈 Grade Progress Over Time")
+            st.line_chart(student_records.set_index("timestamp")["grade_value"])
 
-                    # Latest submission
-                    latest_record = student_records.sort_values(by="timestamp").iloc[-1]
+            # Engagement
+            total_sessions = len(student_records)
+            avg_questions = student_records["questions"].apply(lambda q: len(str(q).split("?"))).mean()
+            st.markdown(f"**🗓️ Total Sessions:** {total_sessions}")
+            st.markdown(f"**❓ Avg Questions per Session:** {avg_questions:.2f}")
 
-                    st.markdown(f"**📊 Overall Grade (Average):** {overall_grade}")
-                    st.markdown(f"**📅 Latest Submission Date:** {latest_record['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
-                    st.markdown(f"**📝 Latest Grade:** {latest_record['grade']}")
-                    #st.markdown(f"**Questions Asked:**")
-                    #questions_list = latest_record['questions'].split("\n")  # Assuming newline-separated questions
-                    #for q in questions_list:
-                        #if q.strip():  # Skip empty lines
-                            #st.markdown(f"- {q.strip()}")
-                    st.markdown("**Lastest Feedback:**")
-                    st.info(latest_record['feedback'])
+            # Optional: Feedback Summary (if many records)
+            all_feedback = student_records["feedback"].dropna().tolist()
+            if len(all_feedback) > 1:
+                combined_feedback = "\n".join(all_feedback)
+                st.markdown("**📝 Overall Feedback Summary:**")
+                try:
+                    from openai import OpenAI
+                    client = OpenAI()
+                    response = client.chat.completions.create(
+                        model="gpt-4",
+                        messages=[
+                            {"role": "system", "content": "Summarize the following feedback:"},
+                            {"role": "user", "content": combined_feedback}
+                        ]
+                    )
+                    st.info(response.choices[0].message.content)
+                except Exception as e:
+                    st.warning("Unable to summarize feedback. Check OpenAI config.")
+                    st.code(str(e))
+    else:
+        st.info("No student data available for analysis.")
 
-                else:
-                    st.warning("No valid grade data available for this student.")
-                    #st.markdown(f"**Latest Submission Date:** {latest_record['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
-                    #st.markdown(f"**Grade:** {latest_record['grade']}")
-                    #st.markdown(f"**Questions Asked:** {latest_record['questions']}")
-                    #st.markdown("**Feedback:**")
-                    #st.info(latest_record['feedback'])
-        else:
-            st.info("No student data available for analysis.")
 
     with tab3:
         upload_and_index_pdf()
