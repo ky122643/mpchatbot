@@ -162,12 +162,35 @@ def display_tutor_ui():
             selected_student = st.selectbox("Select a student", student_names)
 
             if selected_student:
-                latest_record = student_df[student_df["username"] == selected_student].iloc[-1]
-                st.markdown(f"**Latest Submission Date:** {latest_record['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
-                st.markdown(f"**Grade:** {latest_record['grade']}")
-                st.markdown(f"**Questions Asked:** {latest_record['questions']}")
-                st.markdown("**Feedback:**")
-                st.info(latest_record['feedback'])
+                # latest_record = student_df[student_df["username"] == selected_student].iloc[-1]
+                student_records = student_df[student_df["username"] == selected_student].copy()
+
+                grade_map = {'A': 4, 'B': 3, 'C': 2, 'D': 1}
+                reverse_map = {v: k for k, v in grade_map.items()}
+
+                if not student_records.empty:
+                    # Average grade calculation
+                    avg_score = student_records["grade_num"].mean()
+                    rounded_avg = round(avg_score)
+                    overall_grade = reverse_map.get(rounded_avg, "N/A")
+
+                    # Latest submission
+                    latest_record = student_records.sort_values(by="timestamp").iloc[-1]
+
+                    st.markdown(f"**📊 Overall Grade (Average):** {overall_grade}")
+                    st.markdown(f"**📅 Latest Submission Date:** {latest_record['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
+                    st.markdown(f"**📝 Latest Grade:** {latest_record['grade']}")
+                    st.markdown(f"**Questions Asked:** {latest_record['questions']}")
+                    st.markdown("**Feedback:**")
+                    st.info(latest_record['feedback'])
+
+                else:
+                    st.warning("No valid grade data available for this student.")
+                    #st.markdown(f"**Latest Submission Date:** {latest_record['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
+                    #st.markdown(f"**Grade:** {latest_record['grade']}")
+                    #st.markdown(f"**Questions Asked:** {latest_record['questions']}")
+                    #st.markdown("**Feedback:**")
+                    #st.info(latest_record['feedback'])
         else:
             st.info("No student data available for analysis.")
 
