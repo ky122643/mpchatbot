@@ -3,3 +3,7 @@ openai
 PyMuPDF
 pandas
 plotly
+faiss-cpu
+tiktoken
+chromadb
+langchain
