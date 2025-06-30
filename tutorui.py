@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import json
 import openai
+import fitz
 import base64
 from datetime import datetime
 from upload_slides import upload_and_index_pdf
