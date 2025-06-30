@@ -6,8 +6,6 @@ import openai
 from datetime import datetime
 from upload_slides import upload_and_index_pdf
 
-pip install openai==0.28.1
-
 # Initialize SQLite database connection
 db_path = "datab.db"
 conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -159,19 +157,7 @@ def display_tutor_ui():
                         #if q.strip():  # Skip empty lines
                             #st.markdown(f"- {q.strip()}")
                     st.markdown("**Feedback:**")
-                    def summarize_feedback(feedback_list):
-                        combined = "\n".join(feedback_list)
-                        response = openai.ChatCompletion.create(
-                            model="gpt-4",
-                            messages=[{"role": "system", "content": "Summarize the following feedback:"},
-                                      {"role": "user", "content": combined}]
-                        )
-                        return response["choices"][0]["message"]["content"]
-
-                    summary = summarize_feedback(student_records["feedback"].dropna().tolist())
-                    st.markdown("**🧾 AI-Summarized Feedback:**")
-                    st.success(summary)
-                    #st.info(latest_record['feedback'])
+                    st.info(latest_record['feedback'])
 
                 else:
                     st.warning("No valid grade data available for this student.")
