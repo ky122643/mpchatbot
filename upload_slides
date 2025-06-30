@@ -1,0 +1,3 @@
+git add uploaded_slides/
+git commit -m "Add uploaded slides"
+git push
