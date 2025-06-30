@@ -156,7 +156,7 @@ def display_tutor_ui():
                     #for q in questions_list:
                         #if q.strip():  # Skip empty lines
                             #st.markdown(f"- {q.strip()}")
-                    st.markdown("**Feedback:**")
+                    st.markdown("**Lastest Feedback:**")
                     st.info(latest_record['feedback'])
 
                 else:
