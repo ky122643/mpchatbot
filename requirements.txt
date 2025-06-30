@@ -2,4 +2,4 @@ streamlit
 openai
 PyMuPDF
 pandas
-matplotlib
+plotly
