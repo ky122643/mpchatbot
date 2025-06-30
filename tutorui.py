@@ -136,9 +136,6 @@ def display_tutor_ui():
                 latest_record = student_records.iloc[-1]
                 st.markdown(f"**Latest Submission Date:** {latest_record['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
                 st.markdown(f"**Latest Grade:** {latest_record['grade']}")
-                st.markdown(f"**Latest Questions Asked:** {latest_record['questions']}")
-                st.markdown("**Latest Feedback:**")
-                st.info(latest_record['feedback'])
 
                 # Average Grade
                 grade_map = {"A": 4, "B": 3, "C": 2, "D": 1}
@@ -184,9 +181,13 @@ def display_tutor_ui():
                 avg_letter = reverse_map.get(round(avg_value), "N/A")
                 st.markdown(f"**📊 Average Grade:** {avg_letter}")
 
+                st.markdown(f"**Latest Questions Asked:** {latest_record['questions']}")
+                st.markdown("**Latest Feedback:**")
+                st.info(latest_record['feedback'])
+
                 # Grade Trend
-                st.write("### 📈 Grade Progress Over Time")
-                st.line_chart(student_records.set_index("timestamp")["grade_value"])
+                #st.write("### 📈 Grade Progress Over Time")
+                #st.line_chart(student_records.set_index("timestamp")["grade_value"])
 
                 # Engagement
                 total_sessions = len(student_records)
