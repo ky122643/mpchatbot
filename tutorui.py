@@ -10,6 +10,7 @@ from upload_slides import upload_and_index_pdf
 db_path = "datab.db"
 conn = sqlite3.connect(db_path, check_same_thread=False)
 cursor = conn.cursor()
+client = openai.OpenAI()
 
 # Load student data
 def load_student_data():
