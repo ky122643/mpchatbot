@@ -6,6 +6,8 @@ import openai
 from datetime import datetime
 from upload_slides import upload_and_index_pdf
 
+pip install openai==0.28.1
+
 # Initialize SQLite database connection
 db_path = "datab.db"
 conn = sqlite3.connect(db_path, check_same_thread=False)
