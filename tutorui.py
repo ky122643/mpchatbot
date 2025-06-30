@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import json
 import openai
+import base64
 from datetime import datetime
 from upload_slides import upload_and_index_pdf
 
@@ -229,3 +230,21 @@ def display_tutor_ui():
                 st.markdown(f"- `{f}`")
         else:
             st.info("No uploaded slides found.")
+
+        
+        st.write("📄 **Preview Uploaded Slide**")
+
+        selected_file = st.selectbox("Select a file to preview", uploaded_files)
+
+        if selected_file:
+            file_path = os.path.join("uploaded_slides", selected_file)
+            try:
+                doc = fitz.open(file_path)
+                for page_num in range(len(doc)):
+                    page = doc.load_page(page_num)
+                    text = page.get_text()
+                    with st.expander(f"📄 Page {page_num + 1}"):
+                        st.text(text if text else "[No extractable text on this page]")
+            except Exception as e:
+                st.error(f"Error reading file: {e}")
+
