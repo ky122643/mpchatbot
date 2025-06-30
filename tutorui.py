@@ -93,17 +93,17 @@ def display_tutor_ui():
 
                 if matching_logs:
                     log = matching_logs[-1]  # Get most recent
-                try:
-                    messages = json.loads(log["messages"])
-                    st.markdown(f"### 🗨️ Conversation Log (ID: {log['id']}) on {log['timestamp']}")
-                    for msg in messages:
-                        role = msg.get("role", "user")
-                        content = msg.get("content", "")
-                        st.chat_message(role).markdown(content)
-                except Exception as e:
-                    st.error(f"❌ Error loading messages: {e}")
-            else:
-                st.warning("⚠️ No conversation log found for this student.")
+                    try:
+                        messages = json.loads(log["messages"])
+                        st.markdown(f"### 🗨️ Conversation Log (ID: {log['id']}) on {log['timestamp']}")
+                        for msg in messages:
+                            role = msg.get("role", "user")
+                            content = msg.get("content", "")
+                            st.chat_message(role).markdown(content)
+                    except Exception as e:
+                        st.error(f"❌ Error loading messages: {e}")
+                else:
+                    st.warning("⚠️ No conversation log found for this student.")
 
 
         #st.markdown('##')
