@@ -148,8 +148,8 @@ def display_tutor_ui():
                 st.markdown(f"**📊 Average Grade:** {avg_letter}")
 
                 # Grade Trend
-                #st.write("### 📈 Grade Progress Over Time")
-                #st.line_chart(student_records.set_index("timestamp")["grade_value"])
+                st.write("### 📈 Grade Progress Over Time")
+                st.line_chart(student_records.set_index("timestamp")["grade_value"])
 
                 # Engagement
                 #total_sessions = len(student_records)
