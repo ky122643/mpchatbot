@@ -1,32 +1,20 @@
 # rag_utils.py
-from langchain.vectorstores import FAISS
+
+from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.document_loaders import PyPDFLoader
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
-import os
 
-embedding = OpenAIEmbeddings()
+def query_from_slides(query: str):
+    persist_directory = "rag_chroma_db"
+    embeddings = OpenAIEmbeddings()
+    vectordb = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
 
-def create_or_load_faiss_index(pdf_path="slides/Lecture1.pdf", index_path="faiss_index"):
-    if os.path.exists(index_path):
-        return FAISS.load_local(index_path, embedding)
-
-    loader = PyPDFLoader(pdf_path)
-    pages = loader.load()
-
-    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    docs = splitter.split_documents(pages)
-
-    vectorstore = FAISS.from_documents(docs, embedding)
-    vectorstore.save_local(index_path)
-    return vectorstore
-
-def query_rag(user_question):
-    vectorstore = create_or_load_faiss_index()
+    retriever = vectordb.as_retriever()
     qa_chain = RetrievalQA.from_chain_type(
-        llm=ChatOpenAI(model="gpt-4"),
-        retriever=vectorstore.as_retriever()
+        llm=ChatOpenAI(model_name="gpt-4"),
+        retriever=retriever
     )
-    return qa_chain.run(user_question)
+
+    result = qa_chain.run(query)
+    return result
