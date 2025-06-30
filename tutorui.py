@@ -181,6 +181,12 @@ def display_tutor_ui():
                 avg_letter = reverse_map.get(round(avg_value), "N/A")
                 st.markdown(f"**📊 Average Grade:** {avg_letter}")
 
+                # Engagement
+                total_sessions = len(student_records)
+                avg_questions = student_records["questions"].apply(lambda q: len(str(q).split("?"))).mean()
+                st.markdown(f"**🗓️ Total Sessions:** {total_sessions}")
+                st.markdown(f"**❓ Avg Questions per Session:** {avg_questions:.2f}")
+
                 st.markdown(f"**Latest Questions Asked:** {latest_record['questions']}")
                 st.markdown("**Latest Feedback:**")
                 st.info(latest_record['feedback'])
@@ -188,12 +194,6 @@ def display_tutor_ui():
                 # Grade Trend
                 #st.write("### 📈 Grade Progress Over Time")
                 #st.line_chart(student_records.set_index("timestamp")["grade_value"])
-
-                # Engagement
-                total_sessions = len(student_records)
-                avg_questions = student_records["questions"].apply(lambda q: len(str(q).split("?"))).mean()
-                st.markdown(f"**🗓️ Total Sessions:** {total_sessions}")
-                st.markdown(f"**❓ Avg Questions per Session:** {avg_questions:.2f}")
 
                 # Optional: Feedback Summary (if many records)
                 #all_feedback = student_records["feedback"].dropna().tolist()
