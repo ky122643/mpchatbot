@@ -130,54 +130,54 @@ def display_tutor_ui():
             selected_student = st.selectbox("Select a student", student_names)
 
             if selected_student:
-            student_records = student_df[student_df["username"] == selected_student].sort_values("timestamp")
+                student_records = student_df[student_df["username"] == selected_student].sort_values("timestamp")
 
-            latest_record = student_records.iloc[-1]
-            st.markdown(f"**Latest Submission Date:** {latest_record['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
-            st.markdown(f"**Latest Grade:** {latest_record['grade']}")
-            st.markdown(f"**Latest Questions Asked:** {latest_record['questions']}")
-            st.markdown("**Latest Feedback:**")
-            st.info(latest_record['feedback'])
+                latest_record = student_records.iloc[-1]
+                st.markdown(f"**Latest Submission Date:** {latest_record['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
+                st.markdown(f"**Latest Grade:** {latest_record['grade']}")
+                st.markdown(f"**Latest Questions Asked:** {latest_record['questions']}")
+                st.markdown("**Latest Feedback:**")
+                st.info(latest_record['feedback'])
 
-            # Average Grade
-            grade_map = {"A": 4, "B": 3, "C": 2, "D": 1}
-            reverse_map = {v: k for k, v in grade_map.items()}
-            student_records["grade_value"] = student_records["grade"].map(grade_map)
-            avg_value = student_records["grade_value"].mean()
-            avg_letter = reverse_map.get(round(avg_value), "N/A")
-            st.markdown(f"**📊 Average Grade:** {avg_letter}")
+                # Average Grade
+                grade_map = {"A": 4, "B": 3, "C": 2, "D": 1}
+                reverse_map = {v: k for k, v in grade_map.items()}
+                student_records["grade_value"] = student_records["grade"].map(grade_map)
+                avg_value = student_records["grade_value"].mean()
+                avg_letter = reverse_map.get(round(avg_value), "N/A")
+                st.markdown(f"**📊 Average Grade:** {avg_letter}")
 
-            # Grade Trend
-            st.write("### 📈 Grade Progress Over Time")
-            st.line_chart(student_records.set_index("timestamp")["grade_value"])
+                # Grade Trend
+                st.write("### 📈 Grade Progress Over Time")
+                st.line_chart(student_records.set_index("timestamp")["grade_value"])
 
-            # Engagement
-            total_sessions = len(student_records)
-            avg_questions = student_records["questions"].apply(lambda q: len(str(q).split("?"))).mean()
-            st.markdown(f"**🗓️ Total Sessions:** {total_sessions}")
-            st.markdown(f"**❓ Avg Questions per Session:** {avg_questions:.2f}")
+                # Engagement
+                total_sessions = len(student_records)
+                avg_questions = student_records["questions"].apply(lambda q: len(str(q).split("?"))).mean()
+                st.markdown(f"**🗓️ Total Sessions:** {total_sessions}")
+                st.markdown(f"**❓ Avg Questions per Session:** {avg_questions:.2f}")
 
-            # Optional: Feedback Summary (if many records)
-            all_feedback = student_records["feedback"].dropna().tolist()
-            if len(all_feedback) > 1:
-                combined_feedback = "\n".join(all_feedback)
-                st.markdown("**📝 Overall Feedback Summary:**")
-                try:
-                    from openai import OpenAI
-                    client = OpenAI()
-                    response = client.chat.completions.create(
-                        model="gpt-4",
-                        messages=[
-                            {"role": "system", "content": "Summarize the following feedback:"},
-                            {"role": "user", "content": combined_feedback}
-                        ]
-                    )
-                    st.info(response.choices[0].message.content)
-                except Exception as e:
-                    st.warning("Unable to summarize feedback. Check OpenAI config.")
-                    st.code(str(e))
-    else:
-        st.info("No student data available for analysis.")
+                # Optional: Feedback Summary (if many records)
+                all_feedback = student_records["feedback"].dropna().tolist()
+                if len(all_feedback) > 1:
+                    combined_feedback = "\n".join(all_feedback)
+                    st.markdown("**📝 Overall Feedback Summary:**")
+                    try:
+                        from openai import OpenAI
+                        client = OpenAI()
+                        response = client.chat.completions.create(
+                            model="gpt-4",
+                            messages=[
+                                {"role": "system", "content": "Summarize the following feedback:"},
+                                {"role": "user", "content": combined_feedback}
+                            ]
+                        )
+                        st.info(response.choices[0].message.content)
+                    except Exception as e:
+                        st.warning("Unable to summarize feedback. Check OpenAI config.")
+                        st.code(str(e))
+        else:
+            st.info("No student data available for analysis.")
 
 
     with tab3:
