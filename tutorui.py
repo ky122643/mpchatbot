@@ -164,7 +164,7 @@ def display_tutor_ui():
                     #st.markdown("**📝 Overall Feedback Summary:**")
                     #try:
                         #from openai import OpenAI
-                        3client = OpenAI()
+                        #client = OpenAI()
                         #response = client.chat.completions.create(
                             #model="gpt-4",
                             #messages=[
