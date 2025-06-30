@@ -220,3 +220,12 @@ def display_tutor_ui():
 
     with tab3:
         upload_and_index_pdf()
+        # Show uploaded slides in the 'uploaded_slides/' folder
+        import os
+        if os.path.exists("uploaded_slides"):
+            uploaded_files = os.listdir("uploaded_slides")
+            st.write("📁 Uploaded Slide Files:")
+            for f in uploaded_files:
+                st.markdown(f"- `{f}`")
+        else:
+            st.info("No uploaded slides found.")
