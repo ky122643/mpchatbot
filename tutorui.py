@@ -88,49 +88,23 @@ def display_tutor_ui():
                 st.markdown("**Feedback:**")
                 st.info(selected_row['Feedback'])
 
-                conversation_search_id = st.text_input("Search conversation logs by ID", "").strip()
-                if conversation_search_id:
-                    # matching_logs = [entry for entry in conversation_data if str(entry["id"]) == conversation_search_id]
-                    # Find conversation automatically
-                    matching_logs = [entry for entry in conversation_data if entry["username"] == selected_row["Student"]]
-                    if matching_logs:
-                        log = matching_logs[0]
-
-                    # Safely load messages
-                    if "messages" in log:
-                        messages = json.loads(log["messages"])
-                        st.write(f"### Conversation Log for ID {log['id']} - {log['username']} ({log['timestamp']}):")
-                        for msg in messages:
-                            role = msg.get("role", "unknown")
-                            content = msg.get("content", "")
-                            st.chat_message(role).markdown(content)
-                    else:
-                        st.warning("⚠️ No conversation messages found for this student.")
-                else:
-                    st.info("No conversation log found for the given ID.")
+                # Automatically find conversation by student name
+                matching_logs = [entry for entry in conversation_data if entry["username"] == selected_row["Student"]]
 
                 if matching_logs:
-                    log = matching_logs[-1]
-                    st.markdown(f"**Conversation on {log['timestamp']}**")
-
-                # Show chat style
+                    log = matching_logs[-1]  # Get most recent
+                try:
                     messages = json.loads(log["messages"])
-                    st.write("### 🗨️ Conversation Log")
+                    st.markdown(f"### 🗨️ Conversation Log (ID: {log['id']}) on {log['timestamp']}")
                     for msg in messages:
-                        if msg["role"] == "user":
-                            st.chat_message("user").markdown(msg["content"])
-                        elif msg["role"] == "assistant":
-                            st.chat_message("assistant").markdown(msg["content"])
+                        role = msg.get("role", "user")
+                        content = msg.get("content", "")
+                        st.chat_message(role).markdown(content)
+                except Exception as e:
+                    st.error(f"❌ Error loading messages: {e}")
+            else:
+                st.warning("⚠️ No conversation log found for this student.")
 
-                    st.markdown("### 📝 Feedback")
-                    st.markdown(f"**Grade:** {selected_row['Grade']}")
-                    st.markdown("**Summary Feedback:**")
-                    st.info(selected_row["Feedback"])
-                else:
-                    st.warning("No conversation log found for this student.")
-                    
-        else:
-            st.write("No data found for the current query.")
 
         #st.markdown('##')
         #st.write("### Conversation Finder:")
