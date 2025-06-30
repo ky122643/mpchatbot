@@ -152,10 +152,10 @@ def display_tutor_ui():
                 st.line_chart(student_records.set_index("timestamp")["grade_value"])
 
                 # Engagement
-                #total_sessions = len(student_records)
-                #avg_questions = student_records["questions"].apply(lambda q: len(str(q).split("?"))).mean()
-                #st.markdown(f"**🗓️ Total Sessions:** {total_sessions}")
-                #st.markdown(f"**❓ Avg Questions per Session:** {avg_questions:.2f}")
+                total_sessions = len(student_records)
+                avg_questions = student_records["questions"].apply(lambda q: len(str(q).split("?"))).mean()
+                st.markdown(f"**🗓️ Total Sessions:** {total_sessions}")
+                st.markdown(f"**❓ Avg Questions per Session:** {avg_questions:.2f}")
 
                 # Optional: Feedback Summary (if many records)
                 #all_feedback = student_records["feedback"].dropna().tolist()
