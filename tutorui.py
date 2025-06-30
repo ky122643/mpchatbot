@@ -145,17 +145,40 @@ def display_tutor_ui():
                 reverse_map = {v: k for k, v in grade_map.items()}
                 
                 student_records["grade_value"] = student_records["grade"].map(grade_map)
-                fig, ax = plt.subplots()
-                ax.plot(student_records["timestamp"], student_records["grade_value"], marker='o', linestyle='-')
-                 
-                ax.set_yticks([1, 2, 3, 4])
-                ax.set_yticklabels([reverse_map[val] for val in [1, 2, 3, 4]])
 
-                ax.set_title("📈 Grade Progress Over Time")
-                ax.set_xlabel("Timestamp")
-                ax.set_ylabel("Grade")
+                # Assign session number
+                student_records = student_records.reset_index(drop=True)
+                student_records["Session"] = student_records.index + 1
 
-                st.pyplot(fig)
+                # Create interactive line chart
+                fig = px.line(
+                    student_records,
+                    x="Session",
+                    y="grade_value",
+                    markers=True,
+                    title="📈 Grade Progress Over Sessions",
+                    labels={
+                        "Session": "Session Number",
+                        "grade_value": "Grade"
+                    },
+                    hover_data={
+                        "grade": True,
+                        "timestamp": True,
+                        "grade_value": False  # Hide numeric value from tooltip
+                        }
+                    )
+
+                # Customize y-axis to show grade letters
+                fig.update_yaxes(
+                    tickvals=[1, 2, 3, 4],
+                    ticktext=[reverse_map[i] for i in [1, 2, 3, 4]]
+                )
+
+                # Add text annotations (optional)
+                fig.update_traces(text=student_records["grade"], textposition="top center")
+
+                # Display in Streamlit
+                st.plotly_chart(fig, use_container_width=True)
                 
                 avg_value = student_records["grade_value"].mean()
                 avg_letter = reverse_map.get(round(avg_value), "N/A")
