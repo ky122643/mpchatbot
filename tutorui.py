@@ -104,40 +104,6 @@ def display_tutor_ui():
                         st.error(f"❌ Error loading messages: {e}")
                 else:
                     st.warning("⚠️ No conversation log found for this student.")
-
-
-        #st.markdown('##')
-        #st.write("### Conversation Finder:")
-        #conversation_search_id = st.text_input("Search conversation logs by ID", "").strip()
-
-        #if conversation_search_id:
-            #matching_logs = [entry for entry in conversation_data if str(entry['id']) == conversation_search_id]
-            #if matching_logs:
-                #log = matching_logs[0]
-                #st.write(f"### Conversation Log for ID {log['id']} - {log['username']} ({log['timestamp']}):")
-
-                # Parse messages
-                #conversation_lines = log["messages"].split("\n")
-                #current_role, current_message = None, []
-
-                #for line in conversation_lines:
-                    #if line.startswith("user:"):
-                        #if current_message:
-                            #st.markdown(f"**{current_role.capitalize()}:** {' '.join(current_message)}")
-                        #current_role = "user"
-                        #current_message = [line[5:].strip()]
-                    #elif line.startswith("assistant:"):
-                        #if current_message:
-                            #st.markdown(f"**{current_role.capitalize()}:** {' '.join(current_message)}")
-                        #current_role = "assistant"
-                        #current_message = [line[10:].strip()]
-                    #else:
-                        #current_message.append(line.strip())
-
-                #if current_message:
-                    #st.markdown(f"**{current_role.capitalize()}:** {' '.join(current_message)}")
-            #else:
-                #st.write("No conversation log found for the given ID.")
                 
     with tab2:
         st.subheader("📊 Performance Analysis")
@@ -167,6 +133,9 @@ def display_tutor_ui():
 
                 grade_map = {'A': 4, 'B': 3, 'C': 2, 'D': 1}
                 reverse_map = {v: k for k, v in grade_map.items()}
+
+                student_records = student_records[student_records["grade"].isin(grade_map.keys())]
+                student_records["grade_num"] = student_records["grade"].map(grade_map)
 
                 if not student_records.empty:
                     # Average grade calculation
