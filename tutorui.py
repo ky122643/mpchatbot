@@ -19,7 +19,8 @@ def load_student_data():
 
 # Load conversation data
 def load_conversation_data():
-    cursor.execute("SELECT * FROM student_data")
+    #cursor.execute("SELECT * FROM student_data")
+    cursor.execute("SELECT * FROM student_conversations")
     rows = cursor.fetchall()
     columns = [desc[0] for desc in cursor.description]
     return [dict(zip(columns, row)) for row in rows]
@@ -89,7 +90,9 @@ def display_tutor_ui():
 
                 conversation_search_id = st.text_input("Search conversation logs by ID", "").strip()
                 if conversation_search_id:
-                    matching_logs = [entry for entry in conversation_data if str(entry["id"]) == conversation_search_id]
+                    # matching_logs = [entry for entry in conversation_data if str(entry["id"]) == conversation_search_id]
+                    # Find conversation automatically
+                    matching_logs = [entry for entry in conversation_data if entry["username"] == selected_row["Student"]]
                     if matching_logs:
                         log = matching_logs[0]
 
