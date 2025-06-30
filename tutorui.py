@@ -142,7 +142,20 @@ def display_tutor_ui():
                 # Average Grade
                 grade_map = {"A": 4, "B": 3, "C": 2, "D": 1}
                 reverse_map = {v: k for k, v in grade_map.items()}
+                
                 student_records["grade_value"] = student_records["grade"].map(grade_map)
+                fig, ax = plt.subplots()
+                ax.plot(student_records["timestamp"], student_records["grade_value"], marker='o', linestyle='-')
+                 
+                ax.set_yticks([1, 2, 3, 4])
+                ax.set_yticklabels([reverse_map[val] for val in [1, 2, 3, 4]])
+
+                ax.set_title("📈 Grade Progress Over Time")
+                ax.set_xlabel("Timestamp")
+                ax.set_ylabel("Grade")
+
+                st.pyplot(fig)
+                
                 avg_value = student_records["grade_value"].mean()
                 avg_letter = reverse_map.get(round(avg_value), "N/A")
                 st.markdown(f"**📊 Average Grade:** {avg_letter}")
