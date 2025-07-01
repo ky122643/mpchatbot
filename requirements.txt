@@ -1,6 +1,7 @@
 streamlit
 openai
 PyMuPDF
+pypdf
 pandas
 plotly
 faiss-cpu
