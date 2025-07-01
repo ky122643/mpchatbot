@@ -7,6 +7,7 @@ from datetime import datetime
 from openai import OpenAI
 from langchain.vectorstores import FAISS
 from langchain.embeddings.openai import OpenAIEmbeddings
+from rag_utils import load_vectorstore
 
 # from dotenv import load_dotenv
 # load_dotenv(override=True)
@@ -209,11 +210,28 @@ def chatbot_page(client):
             st.session_state.user_questions.append(user_input)
             st.chat_message("user").markdown(user_input)
 
-            conversation = st.session_state.messages
+            # RAG: Retrieve from slides
+            retrieved_docs = []
+            if vectorstore:
+                retriever = vectorstore.as_retriever()
+                retrieved_docs = retriever.get_relevant_documents(user_input)
 
+            context = "\n\n".join(doc.page_content for doc in retrieved_docs[:3]) if retrieved_docs else ""
+
+            # Inject retrieved context into assistant prompt
+            messages = [
+                {"role": "system", "content": "You are an expert on the manufacturing process. Use the context from the slides if it's relevant."},
+            ]
+            if context:
+                messages.append({"role": "system", "content": f"Relevant context from slides:\n{context}"})
+
+            # Add the actual conversation so far
+            messages.extend(st.session_state.messages)
+
+            # Generate assistant reply
             stream = client.chat.completions.create(
                 model="gpt-4o-mini",
-                messages=conversation,
+                messages=messages,
                 stream=True
             )
 
