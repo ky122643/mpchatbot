@@ -5,6 +5,9 @@ import json
 import re 
 from datetime import datetime
 from openai import OpenAI
+from langchain.vectorstores import FAISS
+from langchain.embeddings.openai import OpenAIEmbeddings
+
 # from dotenv import load_dotenv
 # load_dotenv(override=True)
 db_path = "datab.db"
@@ -44,6 +47,12 @@ grading_criteria = load_file("grading_criteria.txt")
 # (💡 Ensure you define this key correctly for OpenAI to work)
 # openai_api_key = os.getenv("api_key")
 # client = OpenAI(api_key=openai_api_key)
+
+def load_vectorstore():
+    if os.path.exists("vectorstore"):
+        embeddings = OpenAIEmbeddings()
+        return FAISS.load_local("vectorstore", embeddings)
+    return None
 
 # function to evaluate performance
 def evaluate_performance(questions, client):
