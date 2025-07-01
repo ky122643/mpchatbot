@@ -137,7 +137,7 @@ def load_conversations(username):
 def reset_conversation():
     st.session_state.messages = [
         {"role": "system", "content": interviewee_context},
-        {"role": "assistant", "content": "Hi, I'm here to help you with questions about the manufacturing process."}
+        {"role": "assistant", "content": "Hi, I'm here to help you with questions about data storytelling and communicating insights effectively."}
     ]
     st.session_state.user_questions = []
     st.session_state.conversation_ended = False
@@ -205,7 +205,7 @@ def chatbot_page(client):
             st.chat_message(message["role"]).markdown(message["content"])
 
     if not st.session_state.conversation_ended and not st.session_state.is_review_mode:
-        if user_input := st.chat_input("Ask a question about the manufacturing process:", key="user_input"):
+        if user_input := st.chat_input("Ask a question about data storytelling or analytics insights:", key="user_input"):
             st.session_state.messages.append({"role": "user", "content": user_input})
             st.session_state.user_questions.append(user_input)
             st.chat_message("user").markdown(user_input)
