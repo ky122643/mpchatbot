@@ -29,3 +29,6 @@ def upload_and_index_pdf():
         vectorstore.save_local("vectorstore")
         st.success("✅ Slides indexed and saved to vectorstore.")
 
+def load_vectorstore():
+    embeddings = OpenAIEmbeddings()
+    return FAISS.load_local("vectorstore", embeddings, allow_dangerous_deserialization=True)
