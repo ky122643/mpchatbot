@@ -5,7 +5,7 @@ import json
 import re 
 from datetime import datetime
 from openai import OpenAI
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain.embeddings.openai import OpenAIEmbeddings
 from rag_utils import load_vectorstore
 
