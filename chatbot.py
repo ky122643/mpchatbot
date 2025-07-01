@@ -144,6 +144,13 @@ def reset_conversation():
 
 # chatbot UI
 def chatbot_page(client):
+    # Load vectorstore with fallback
+    try:
+        vectorstore = load_vectorstore()
+    except Exception as e:
+        vectorstore = None
+        st.warning("⚠️ Could not load vectorstore. Falling back to general GPT.")
+
     if "conversations" not in st.session_state:
         st.session_state.conversations = []
 
@@ -172,7 +179,6 @@ def chatbot_page(client):
         st.session_state.conversations = load_conversations(st.session_state.username)
         st.session_state.conversations_loaded = True
 
-    # Sidebar conversation history
     st.sidebar.title(f"{st.session_state.username}'s Past Conversations")
     if st.session_state.conversations:
         for idx, conv in enumerate(st.session_state.conversations):
@@ -210,25 +216,25 @@ def chatbot_page(client):
             st.session_state.user_questions.append(user_input)
             st.chat_message("user").markdown(user_input)
 
-            # RAG: Retrieve from slides
+            # Try RAG context
             retrieved_docs = []
             if vectorstore:
-                retriever = vectorstore.as_retriever()
-                retrieved_docs = retriever.get_relevant_documents(user_input)
+                try:
+                    retriever = vectorstore.as_retriever()
+                    retrieved_docs = retriever.get_relevant_documents(user_input)
+                except Exception as e:
+                    st.warning("⚠️ Retrieval failed. Proceeding without slide context.")
 
             context = "\n\n".join(doc.page_content for doc in retrieved_docs[:3]) if retrieved_docs else ""
 
-            # Inject retrieved context into assistant prompt
             messages = [
                 {"role": "system", "content": "You are an expert on the manufacturing process. Use the context from the slides if it's relevant."},
             ]
             if context:
                 messages.append({"role": "system", "content": f"Relevant context from slides:\n{context}"})
 
-            # Add the actual conversation so far
             messages.extend(st.session_state.messages)
 
-            # Generate assistant reply
             stream = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=messages,
