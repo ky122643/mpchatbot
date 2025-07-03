@@ -42,18 +42,27 @@ if not st.session_state.logged_in:
         st.rerun()
 
 else:
-    st.sidebar.success(f"✅ Logged in as {st.session_state.username} ({st.session_state.role})")
+    if st.session_state.logged_in:
+        st.sidebar.success(f"✅ Logged in as {st.session_state.username} ({st.session_state.role})")
 
-    if st.sidebar.button("Logout"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()
+        # Navigation option
+        page = st.sidebar.radio("📚 Menu", ["Home", "Profile", "Logout"])
 
-    # Route based on role
-    if st.session_state.role == "tutor":
-        display_tutor_ui()
-    elif st.session_state.role == "student":
-        chatbot_page(client)
+        if page == "Logout":
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            st.rerun()
+
+        elif page == "Profile":
+            from profile import profile_page
+            profile_page()
+
+        else:
+            # Route based on role
+            if st.session_state.role == "tutor":
+                display_tutor_ui()
+            elif st.session_state.role == "student":
+                chatbot_page(client)
     else:
         st.error("Unknown role. Please contact administrator.")
 
