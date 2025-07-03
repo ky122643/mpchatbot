@@ -206,9 +206,48 @@ def chatbot_page(client):
         reset_conversation()
         st.session_state.is_review_mode = False
 
+    def user_bubble(text):
+        bubble_html = f"""
+        <div style="
+            background-color:#DCF8C6; 
+            color: #000000;
+            padding: 10px 15px; 
+            border-radius: 20px 20px 0 20px;
+            max-width: 70%;
+            margin-left: auto; 
+            margin-bottom: 10px;
+            font-family: Arial, sans-serif;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        ">
+            {text}
+        </div>
+        """
+        st.markdown(bubble_html, unsafe_allow_html=True)
+
+    def assistant_bubble(text):
+        bubble_html = f"""
+        <div style="
+            background-color:#F1F0F0; 
+            color: #000000;
+            padding: 10px 15px; 
+            border-radius: 20px 20px 20px 0;
+            max-width: 70%;
+            margin-right: auto;
+            margin-bottom: 10px;
+            font-family: Arial, sans-serif;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        ">
+            {text}
+        </div>
+        """
+        st.markdown(bubble_html, unsafe_allow_html=True)
+        
     for message in st.session_state.messages:
         if message["role"] != "system":
-            st.chat_message(message["role"]).markdown(message["content"])
+            if message["role"] == "user":
+                user_bubble(message["content"])
+            else:
+                assistant_bubble(message["content"])
 
     if not st.session_state.conversation_ended and not st.session_state.is_review_mode:
         if user_input := st.chat_input("Ask a question about the manufacturing process:", key="user_input"):
