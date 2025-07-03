@@ -37,12 +37,10 @@ if st.session_state.logged_in and time.time() - st.session_state.last_active > S
 if not st.session_state.logged_in:
     st.title("🔒 Welcome! Please Login or Register")
     login_successful = login_and_register()
-
     if login_successful:
         st.rerun()
 
 else:
-    if st.session_state.logged_in:
         st.sidebar.success(f"✅ Logged in as {st.session_state.username} ({st.session_state.role})")
 
         # Navigation option
@@ -57,13 +55,12 @@ else:
             from profile import profile_page
             profile_page()
 
-        else:
+        elif page == "Home":
             # Route based on role
             if st.session_state.role == "tutor":
                 display_tutor_ui()
             elif st.session_state.role == "student":
                 chatbot_page(client)
-    else:
-        st.error("Unknown role. Please contact administrator.")
-
+            else:
+                st.error("Unknown role. Please contact administrator.")
     
