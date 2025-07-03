@@ -41,27 +41,42 @@ if not st.session_state.logged_in:
         st.rerun()
 
 else:
+        # Sidebar user info (top)
         st.sidebar.success(f"✅ Logged in as {st.session_state.username} ({st.session_state.role})")
 
-        # Sidebar Buttons
+        # Buttons for Home and Logout on top
         home_btn = st.sidebar.button("🏠 Home")
-        profile_btn = st.sidebar.button("👤 Profile")
         logout_btn = st.sidebar.button("🚪 Logout")
 
-        # Track which page to show
         if "page" not in st.session_state:
             st.session_state.page = "home"
 
         if home_btn:
             st.session_state.page = "home"
-        elif profile_btn:
-            st.session_state.page = "profile"
         elif logout_btn:
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             st.rerun()
 
-        # Render based on selected page
+        # Spacer to push the profile icon to the bottom
+        st.sidebar.markdown("<div style='flex-grow: 1'></div>", unsafe_allow_html=True)
+        # Use this if needed to add vertical space; alternatively use empty lines:
+        for _ in range(15):
+            st.sidebar.text("")
+
+        # Profile circle button with image (or initials)
+        profile_clicked = st.sidebar.button(
+            "👤",
+            key="profile_icon",
+            help="View Profile",
+            # Custom CSS to style it as a circle:
+        )
+
+        # Set page to profile if clicked
+        if profile_clicked:
+            st.session_state.page = "profile"
+
+        # Render selected page
         if st.session_state.page == "home":
             if st.session_state.role == "tutor":
                 display_tutor_ui()
