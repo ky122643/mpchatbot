@@ -209,17 +209,20 @@ def chatbot_page(client):
     def user_bubble(text):
         bubble_html = f"""
         <div style="
-            background-color:#DCF8C6; 
-            color: #000000;
-            padding: 10px 15px; 
-            border-radius: 20px 20px 0 20px;
-            max-width: 70%;
-            margin-left: auto; 
-            margin-bottom: 10px;
-            font-family: Arial, sans-serif;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
-        ">
-            {text}
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;">
+            <div style="
+                background-color:#DCF8C6;
+                color: #000000;
+                padding: 10px 15px;
+                border-radius: 20px 20px 0 20px;
+                max-width: 70%;
+                font-family: Arial, sans-serif;
+                box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+                ">
+                {text}
+            </div>
         </div>
         """
         st.markdown(bubble_html, unsafe_allow_html=True)
@@ -227,20 +230,24 @@ def chatbot_page(client):
     def assistant_bubble(text):
         bubble_html = f"""
         <div style="
-            background-color:#F1F0F0; 
-            color: #000000;
-            padding: 10px 15px; 
-            border-radius: 20px 20px 20px 0;
-            max-width: 70%;
-            margin-right: auto;
-            margin-bottom: 10px;
-            font-family: Arial, sans-serif;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
-        ">
-            {text}
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 10px;">
+            <div style="
+                background-color:#F1F0F0;
+                color: #000000;
+                padding: 10px 15px;
+                border-radius: 20px 20px 20px 0;
+                max-width: 70%;
+                font-family: Arial, sans-serif;
+                box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+                ">
+                {text}
+            </div>
         </div>
         """
         st.markdown(bubble_html, unsafe_allow_html=True)
+
         
     for message in st.session_state.messages:
         if message["role"] != "system":
