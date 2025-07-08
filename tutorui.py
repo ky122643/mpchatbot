@@ -5,247 +5,107 @@ import plotly.express as px
 import json
 import openai
 import fitz
-import base64
+import os
 from datetime import datetime
 from upload_slides import upload_and_index_pdf
 
-# Initialize SQLite database connection
-db_path = "datab.db"
-conn = sqlite3.connect(db_path, check_same_thread=False)
+# Database setup
+conn = sqlite3.connect("datab.db", check_same_thread=False)
 cursor = conn.cursor()
 client = openai.OpenAI()
 
-# Load student data
+# Load functions
+
 def load_student_data():
     cursor.execute("SELECT * FROM student_data")
     rows = cursor.fetchall()
     columns = [desc[0].lower() for desc in cursor.description]
     return [dict(zip(columns, row)) for row in rows]
 
-# Load conversation data
 def load_conversation_data():
-    #cursor.execute("SELECT * FROM student_data")
     cursor.execute("SELECT * FROM student_conversations")
     rows = cursor.fetchall()
     columns = [desc[0] for desc in cursor.description]
     return [dict(zip(columns, row)) for row in rows]
 
-# Tutor dashboard UI
-def display_tutor_ui():
-    st.title("📋 Tutor Dashboard")
-    tab1, tab2, tab3 = st.tabs(["📋 Student Overview", "📊 Analyse", "📚 Upload Slides"])
+# Dashboard UI
 
+def display_tutor_ui():
+    st.title("📊 Tutor Dashboard")
     student_data = load_student_data()
     conversation_data = load_conversation_data()
 
-    with tab1:
-        # Format student data
-        table_data = [{
-        "ID": entry.get("id"),
-        "Student": entry.get("username"),
-        "Timestamp": entry.get("timestamp"),  # could be None or missing
-        "Grade": entry.get("grade"),
-        "Questions": entry.get("questions"),
-        "Feedback": entry.get("feedback")
-        } for entry in student_data]
+    student_df = pd.DataFrame(student_data)
 
-        df = pd.DataFrame(table_data)
-        
-        # Debug step: print columns to check
-        # st.write("📋 Available columns:", df.columns.tolist())
-        # st.write(list(df.columns))
+    if not student_df.empty:
+        student_df['timestamp'] = pd.to_datetime(student_df['timestamp'], errors='coerce')
+        student_df = student_df.dropna(subset=["grade"])
+        student_df["grade"] = student_df["grade"].str.upper().str.strip()
 
-        if "Timestamp" in df.columns: 
-            df['Timestamp'] = pd.to_datetime(df['Timestamp'], errors='coerce')
-            df = df.sort_values(by="Timestamp", ascending=False)
-        else: 
-            st.warning (" 'Timestamp' column missing in student data.")
-        
-        search_query = st.text_input("Search student data by student name, grade, or ID", "").strip().lower()
-        show_top_5 = st.checkbox("Show Only Top 5 Rows", value=True)
-        
-        # Filter data
-        filtered_data = [
-            entry for entry in table_data
-            if (
-                (len(search_query) == 1 and search_query in ["a", "b", "c", "d"] and entry['Grade'].lower() == search_query) or
-                (search_query not in ["a", "b", "c", "d"] and (
-                    search_query in entry['Student'].lower() or search_query in str(entry['ID']).lower()))
-            ) and entry['Grade'].lower() != "grade not found, please review manually"
-        ]
-        filtered_df = pd.DataFrame(filtered_data)
-        if show_top_5 and not filtered_df.empty:
-            filtered_df = filtered_df.head(5)
+        # Top KPIs
+        st.markdown("### 📈 Key Performance Metrics")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Students", len(student_df["username"].unique()))
+        col2.metric("Avg. Grade", student_df["grade"].mode()[0])
+        col3.metric("Total Sessions", len(student_df))
 
-        st.write("#### Student Data (for best viewing, download and top right align):")
-        if not filtered_df.empty:
-            st.dataframe(filtered_df[["ID", "Student", "Timestamp", "Grade", "Questions", "Feedback"]],
-                         width=1000, height=400)
-            # Add dropdown to select a student row by ID
-            selected_id = st.selectbox("🔍 Select a Student ID to view full details:", filtered_df["ID"].tolist())
-            selected_row = filtered_df[filtered_df["ID"] == selected_id].iloc[0]
-            
-            # Expandable section for full details
-            with st.expander(f"📄 Full Details for {selected_row['Student']} (ID: {selected_row['ID']})"):
-                st.markdown(f"**Grade:** {selected_row['Grade']}")
-                st.markdown("**Questions Asked:**")
-                st.code(selected_row['Questions'], language="markdown")
+        # Tabs for views
+        tab1, tab2, tab3 = st.tabs(["Overview", "Insights", "Upload Slides"])
+
+        with tab1:
+            st.subheader("📋 Student Table")
+            search = st.text_input("🔍 Search by Name or Grade")
+            filtered_df = student_df.copy()
+            if search:
+                filtered_df = filtered_df[filtered_df["username"].str.contains(search, case=False) | filtered_df["grade"].str.contains(search, case=False)]
+
+            st.dataframe(filtered_df, use_container_width=True)
+
+            selected_id = st.selectbox("Select Student ID for Details", options=filtered_df["id"].unique())
+            selected_row = filtered_df[filtered_df["id"] == selected_id].iloc[0]
+
+            with st.expander(f"🧑‍🎓 {selected_row['username']} Details"):
+                st.markdown(f"**Grade:** {selected_row['grade']}")
+                st.markdown(f"**Questions Asked:**")
+                st.code(selected_row['questions'])
                 st.markdown("**Feedback:**")
-                st.info(selected_row['Feedback'])
+                st.info(selected_row['feedback'])
 
-                # Automatically find conversation by student name
-                matching_logs = [entry for entry in conversation_data if entry["username"] == selected_row["Student"]]
+                logs = [c for c in conversation_data if c["username"] == selected_row["username"]]
+                if logs:
+                    log = logs[-1]
+                    messages = json.loads(log["messages"])
+                    for m in messages:
+                        st.chat_message(m["role"]).markdown(m["content"])
 
-                if matching_logs:
-                    log = matching_logs[-1]  # Get most recent
-                    try:
-                        messages = json.loads(log["messages"])
-                        st.markdown(f"### 🗨️ Conversation Log (ID: {log['id']}) on {log['timestamp']}")
-                        for msg in messages:
-                            role = msg.get("role", "user")
-                            content = msg.get("content", "")
-                            st.chat_message(role).markdown(content)
-                    except Exception as e:
-                        st.error(f"❌ Error loading messages: {e}")
-                else:
-                    st.warning("⚠️ No conversation log found for this student.")
-                
-    with tab2:
-        st.subheader("📊 Performance Analysis")
-        student_df = pd.DataFrame(student_data)
-
-        if not student_df.empty:
-            student_df['timestamp'] = pd.to_datetime(student_df['timestamp'], errors='coerce')
-            student_df = student_df.dropna(subset=["grade"])
-            student_df["grade"] = student_df["grade"].str.upper().str.strip()
-
-            st.write("### Grade Distribution")
+        with tab2:
+            st.subheader("📊 Analytics")
             grade_counts = student_df["grade"].value_counts().reindex(["A", "B", "C", "D"]).fillna(0)
-            st.bar_chart(grade_counts)
+            st.write("### Grade Distribution")
+            fig1 = px.bar(grade_counts, x=grade_counts.index, y=grade_counts.values, labels={'x': 'Grade', 'y': 'Count'}, title="Grade Breakdown")
+            st.plotly_chart(fig1, use_container_width=True)
 
             st.write("### Submissions Over Time")
             time_series = student_df.groupby(student_df["timestamp"].dt.date).size()
             st.line_chart(time_series)
 
-            st.markdown("---")
-            st.subheader("🧑‍🎓 Individual Student Performance")
-            student_names = student_df["username"].unique()
-            selected_student = st.selectbox("Select a student", student_names)
+        with tab3:
+            upload_and_index_pdf()
+            if os.path.exists("uploaded_slides"):
+                files = os.listdir("uploaded_slides")
+                st.write("### 📁 Uploaded Files")
+                for f in files:
+                    st.markdown(f"- `{f}`")
 
-            if selected_student:
-                student_records = student_df[student_df["username"] == selected_student].sort_values("timestamp")
-
-                latest_record = student_records.iloc[-1]
-                st.markdown(f"**Latest Submission Date:** {latest_record['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
-                st.markdown(f"**Latest Grade:** {latest_record['grade']}")
-
-                # Average Grade
-                grade_map = {"A": 4, "B": 3, "C": 2, "D": 1}
-                reverse_map = {v: k for k, v in grade_map.items()}
-                
-                student_records["grade_value"] = student_records["grade"].map(grade_map)
-
-                # Assign session number
-                student_records = student_records.reset_index(drop=True)
-                student_records["Session"] = student_records.index + 1
-
-                # Create interactive line chart
-                fig = px.line(
-                    student_records,
-                    x="Session",
-                    y="grade_value",
-                    markers=True,
-                    title="📈 Grade Progress Over Sessions",
-                    labels={
-                        "Session": "Session Number",
-                        "grade_value": "Grade"
-                    },
-                    hover_data={
-                        "grade": True,
-                        "timestamp": True,
-                        "grade_value": False  # Hide numeric value from tooltip
-                        }
-                    )
-
-                # Customize y-axis to show grade letters
-                fig.update_yaxes(
-                    tickvals=[1, 2, 3, 4],
-                    ticktext=[reverse_map[i] for i in [1, 2, 3, 4]]
-                )
-
-                # Add text annotations (optional)
-                fig.update_traces(text=student_records["grade"], textposition="top center")
-
-                # Display in Streamlit
-                st.plotly_chart(fig, use_container_width=True)
-                
-                avg_value = student_records["grade_value"].mean()
-                avg_letter = reverse_map.get(round(avg_value), "N/A")
-                st.markdown(f"**📊 Average Grade:** {avg_letter}")
-
-                # Engagement
-                total_sessions = len(student_records)
-                avg_questions = student_records["questions"].apply(lambda q: len(str(q).split("?"))).mean()
-                st.markdown(f"**🗓️ Total Sessions:** {total_sessions}")
-                st.markdown(f"**❓ Avg Questions per Session:** {avg_questions:.2f}")
-
-                st.markdown(f"**Latest Questions Asked:** {latest_record['questions']}")
-                st.markdown("**Latest Feedback:**")
-                st.info(latest_record['feedback'])
-
-                # Grade Trend
-                #st.write("### 📈 Grade Progress Over Time")
-                #st.line_chart(student_records.set_index("timestamp")["grade_value"])
-
-                # Optional: Feedback Summary (if many records)
-                #all_feedback = student_records["feedback"].dropna().tolist()
-                #if len(all_feedback) > 1:
-                    #combined_feedback = "\n".join(all_feedback)
-                    #st.markdown("**📝 Overall Feedback Summary:**")
-                    #try:
-                        #from openai import OpenAI
-                        #client = OpenAI()
-                        #response = client.chat.completions.create(
-                            #model="gpt-4",
-                            #messages=[
-                                #{"role": "system", "content": "Summarize the following feedback:"},
-                                #{"role": "user", "content": combined_feedback}
-                            #]
-                        #)
-                        #st.info(response.choices[0].message.content)
-                    #except Exception as e:
-                        #st.warning("Unable to summarize feedback. Check OpenAI config.")
-                        #st.code(str(e))
-        else:
-            st.info("No student data available for analysis.")
-
-
-    with tab3:
-        upload_and_index_pdf()
-        # Show uploaded slides in the 'uploaded_slides/' folder
-        import os
-        if os.path.exists("uploaded_slides"):
-            uploaded_files = os.listdir("uploaded_slides")
-            st.write("📁 Uploaded Slide Files:")
-            for f in uploaded_files:
-                st.markdown(f"- `{f}`")
-        else:
-            st.info("No uploaded slides found.")
-
-        
-        st.write("📄 **Preview Uploaded Slide**")
-
-        selected_file = st.selectbox("Select a file to preview", uploaded_files)
-
-        if selected_file:
-            file_path = os.path.join("uploaded_slides", selected_file)
-            try:
-                doc = fitz.open(file_path)
-                for page_num in range(len(doc)):
-                    page = doc.load_page(page_num)
-                    text = page.get_text()
-                    with st.expander(f"📄 Page {page_num + 1}"):
-                        st.text(text if text else "[No extractable text on this page]")
-            except Exception as e:
-                st.error(f"Error reading file: {e}")
-
+                selected_file = st.selectbox("Preview a file", files)
+                if selected_file:
+                    try:
+                        doc = fitz.open(os.path.join("uploaded_slides", selected_file))
+                        for i in range(len(doc)):
+                            with st.expander(f"📄 Page {i+1}"):
+                                text = doc.load_page(i).get_text()
+                                st.text(text or "No text found.")
+                    except Exception as e:
+                        st.error(f"Failed to read file: {e}")
+    else:
+        st.info("No student data available yet.")
