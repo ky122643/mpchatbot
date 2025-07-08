@@ -18,6 +18,22 @@ conn = sqlite3.connect(db_path, check_same_thread=False)
 cursor = conn.cursor()
 client = openai.OpenAI()
 
+st.markdown(
+    """
+    <style>
+    .bordered-box {
+        border: 2px solid #4A90E2;   /* border color */
+        border-radius: 12px;          /* rounded corners */
+        padding: 12px;
+        text-align: center;
+        background-color: #f0f8ff;   /* optional: subtle background */
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Load student data
 def load_student_data():
     cursor.execute("SELECT * FROM student_data")
@@ -55,29 +71,22 @@ def display_tutor_ui():
 
     # KPI Metrics
     col1, col2, col3 = st.columns(3)
-    col1.metric("👨‍🎓 Total Students", len(student_df["username"].unique()))
-    avg_value = student_df["grade_value"].mean()
-    avg_letter = reverse_map.get(round(avg_value), "N/A")
-    col2.metric("📊 Avg Grade", f"{avg_value:.2f} ({avg_letter})")
-    col3.metric("❓ Avg Questions", f"{student_df['question_count'].mean():.2f}")
+    with col1:
+        st.markdown('<div class="bordered-box">', unsafe_allow_html=True)
+        st.metric("👨‍🎓 Total Students", len(student_df["username"].unique()))
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col2:
+        st.markdown('<div class="bordered-box">', unsafe_allow_html=True)
+        st.metric("📊 Avg Grade", f"{avg_value:.2f} ({avg_letter})")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col3:
+        st.markdown('<div class="bordered-box">', unsafe_allow_html=True)
+        st.metric("❓ Avg Questions", f"{student_df['question_count'].mean():.2f}")
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # After all imports (e.g., after 'from datetime import datetime')
-def stat_card(icon, title, value, color="#ffffff"):
-    return f"""
-    <div style="
-        background-color: {color};
-        padding: 15px;
-        border-radius: 15px;
-        box-shadow: 1px 2px 8px rgba(0,0,0,0.1);
-        border: 1px solid #ddd;
-        margin: 10px;
-        width: 100%;
-        max-width: 250px;
-        ">
-        <h4 style="margin: 0;">{icon} {title}</h4>
-        <p style="font-size: 1.8em; font-weight: bold; margin: 5px 0 0 0;">{value}</p>
-    </div>
-    """
         
     st.markdown("---")
     tab1, tab2, tab3, tab4 = st.tabs(["📋 Overview", "📈 Analysis", "🧠 Breakdown", "📚 Upload Slides"])
