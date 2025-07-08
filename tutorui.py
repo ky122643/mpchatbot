@@ -61,6 +61,24 @@ def display_tutor_ui():
     col2.metric("📊 Avg Grade", f"{avg_value:.2f} ({avg_letter})")
     col3.metric("❓ Avg Questions", f"{student_df['question_count'].mean():.2f}")
 
+    # After all imports (e.g., after 'from datetime import datetime')
+def stat_card(icon, title, value, color="#ffffff"):
+    return f"""
+    <div style="
+        background-color: {color};
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 1px 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #ddd;
+        margin: 10px;
+        width: 100%;
+        max-width: 250px;
+        ">
+        <h4 style="margin: 0;">{icon} {title}</h4>
+        <p style="font-size: 1.8em; font-weight: bold; margin: 5px 0 0 0;">{value}</p>
+    </div>
+    """
+        
     st.markdown("---")
     tab1, tab2, tab3, tab4 = st.tabs(["📋 Overview", "📈 Analysis", "🧠 Breakdown", "📚 Upload Slides"])
 
