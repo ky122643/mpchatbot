@@ -6,6 +6,8 @@ import json
 import openai
 import fitz
 import base64
+import collections
+import re
 from datetime import datetime
 from upload_slides import upload_and_index_pdf
 
@@ -31,46 +33,38 @@ def load_conversation_data():
 
 # Tutor dashboard UI
 def display_tutor_ui():
-    st.title("📋 Tutor Dashboard")
-    tab1, tab2, tab3 = st.tabs(["📊 Dashboard Overview", "📋 Student Records", "📚 Upload Slides"])
+    st.title("📊 Tutor Dashboard")
 
     student_data = load_student_data()
     conversation_data = load_conversation_data()
+    student_df = pd.DataFrame(student_data)
+
+    if student_df.empty:
+        st.info("No student data available.")
+        return
+
+    student_df['timestamp'] = pd.to_datetime(student_df['timestamp'], errors='coerce')
+    student_df = student_df.dropna(subset=["grade"])
+    student_df["grade"] = student_df["grade"].str.upper().str.strip()
+    student_df["question_count"] = student_df["questions"].apply(lambda q: len(str(q).split("?")) if pd.notnull(q) else 0)
+
+    grade_map = {"A": 4, "B": 3, "C": 2, "D": 1}
+    reverse_map = {v: k for k, v in grade_map.items()}
+    student_df["grade_value"] = student_df["grade"].map(grade_map)
+
+    # KPI Metrics
+    col1, col2, col3 = st.columns(3)
+    col1.metric("👨‍🎓 Total Students", len(student_df["username"].unique()))
+    avg_value = student_df["grade_value"].mean()
+    avg_letter = reverse_map.get(round(avg_value), "N/A")
+    col2.metric("📊 Avg Grade", f"{avg_value:.2f} ({avg_letter})")
+    col3.metric("❓ Avg Questions", f"{student_df['question_count'].mean():.2f}")
+
+    st.markdown("---")
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Overview", "📈 Analysis", "🧠 Breakdown", "📚 Upload Slides"])
 
     with tab1:
-        st.subheader("📈 Dashboard Overview")
-
-        df = pd.DataFrame(student_data)
-        if not df.empty:
-            df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-            df = df.dropna(subset=['grade'])
-            df['grade'] = df['grade'].str.upper()
-
-            # KPIs
-            total_students = df['username'].nunique()
-            avg_grade = df['grade'].map({"A": 4, "B": 3, "C": 2, "D": 1}).mean()
-            grade_letter = {4: "A", 3: "B", 2: "C", 1: "D"}.get(round(avg_grade), "N/A")
-            total_questions = df['questions'].apply(lambda q: len(str(q).split('?'))).sum()
-
-            kpi1, kpi2, kpi3 = st.columns(3)
-            kpi1.metric("🧑‍🎓 Total Students", total_students)
-            kpi2.metric("📊 Avg Grade", grade_letter)
-            kpi3.metric("❓ Total Questions Asked", total_questions)
-
-            # Charts
-            st.write("### 📊 Grade Distribution")
-            grade_counts = df['grade'].value_counts().reindex(["A", "B", "C", "D"]).fillna(0)
-            st.bar_chart(grade_counts)
-
-            st.write("### 📅 Submissions Over Time")
-            time_series = df.groupby(df['timestamp'].dt.date).size()
-            st.line_chart(time_series)
-
-        else:
-            st.info("No data available yet.")
-
-    with tab2:
-        st.subheader("📋 Student Records")
+        st.subheader("📋 Student Overview")
         table_data = [{
             "ID": entry.get("id"),
             "Student": entry.get("username"),
@@ -81,60 +75,79 @@ def display_tutor_ui():
         } for entry in student_data]
 
         df = pd.DataFrame(table_data)
-        if "Timestamp" in df.columns:
-            df['Timestamp'] = pd.to_datetime(df['Timestamp'], errors='coerce')
-            df = df.sort_values(by="Timestamp", ascending=False)
+        df['Timestamp'] = pd.to_datetime(df['Timestamp'], errors='coerce')
+        df = df.sort_values(by="Timestamp", ascending=False)
 
-        search_query = st.text_input("Search by name, ID, or grade", "").strip().lower()
-        show_top_5 = st.checkbox("Show Top 5", value=True)
+        st.dataframe(df, use_container_width=True)
 
-        filtered_data = [
-            entry for entry in table_data
-            if (
-                (len(search_query) == 1 and search_query in ["a", "b", "c", "d"] and entry['Grade'].lower() == search_query) or
-                (search_query not in ["a", "b", "c", "d"] and (
-                    search_query in entry['Student'].lower() or search_query in str(entry['ID']).lower()))
-            ) and entry['Grade'].lower() != "grade not found, please review manually"
-        ]
-        filtered_df = pd.DataFrame(filtered_data)
-        if show_top_5 and not filtered_df.empty:
-            filtered_df = filtered_df.head(5)
+    with tab2:
+        st.subheader("📈 Visual Insights")
 
-        if not filtered_df.empty:
-            st.dataframe(filtered_df["ID", "Student", "Timestamp", "Grade", "Questions", "Feedback"], width=1000, height=400)
-            selected_id = st.selectbox("🔍 Select Student ID", filtered_df["ID"].tolist())
-            selected_row = filtered_df[filtered_df["ID"] == selected_id].iloc[0]
+        # Grade Distribution
+        grade_counts = student_df["grade"].value_counts().reindex(["A", "B", "C", "D"]).fillna(0)
+        st.plotly_chart(px.bar(
+            x=grade_counts.index,
+            y=grade_counts.values,
+            labels={"x": "Grade", "y": "Count"},
+            title="🎯 Grade Distribution"
+        ), use_container_width=True)
 
-            with st.expander(f"📄 Details for {selected_row['Student']} (ID: {selected_row['ID']})"):
-                st.markdown(f"**Grade:** {selected_row['Grade']}")
-                st.markdown("**Questions Asked:**")
-                st.code(selected_row['Questions'])
-                st.markdown("**Feedback:**")
-                st.info(selected_row['Feedback'])
+        # Submission over time
+        time_series = student_df.groupby(student_df["timestamp"].dt.date).size()
+        st.plotly_chart(px.line(
+            x=time_series.index,
+            y=time_series.values,
+            labels={"x": "Date", "y": "Submissions"},
+            title="📅 Submissions Over Time"
+        ), use_container_width=True)
 
-                matching_logs = [entry for entry in conversation_data if entry["username"] == selected_row["Student"]]
-                if matching_logs:
-                    log = matching_logs[-1]
-                    try:
-                        messages = json.loads(log["messages"])
-                        st.markdown(f"### 🗨️ Conversation Log (ID: {log['id']}) on {log['timestamp']}")
-                        for msg in messages:
-                            st.chat_message(msg["role"]).markdown(msg["content"])
-                    except Exception as e:
-                        st.error(f"❌ Error loading messages: {e}")
-                else:
-                    st.warning("⚠️ No conversation log found for this student.")
+        # Scatter: Question Count vs Grade
+        st.plotly_chart(px.scatter(
+            student_df,
+            x="question_count",
+            y="grade_value",
+            color="username",
+            title="🧠 Engagement vs Performance",
+            labels={"question_count": "Number of Questions", "grade_value": "Grade"},
+            hover_data=["username", "grade"]
+        ).update_yaxes(
+            tickvals=[1, 2, 3, 4], ticktext=["D", "C", "B", "A"]
+        ), use_container_width=True)
 
     with tab3:
+        st.subheader("🔍 Chatbot Interaction Breakdown")
+
+        all_questions = " ".join(student_df["questions"].dropna().values)
+        question_words = re.findall(r"\b(how|what|why|when|where|who|can|do|is|should)\b", all_questions, re.IGNORECASE)
+        question_freq = collections.Counter(question_words)
+
+        st.plotly_chart(px.bar(
+            x=list(question_freq.keys()),
+            y=list(question_freq.values()),
+            title="🗣️ Common Question Starters",
+            labels={"x": "Question Word", "y": "Frequency"}
+        ), use_container_width=True)
+
+        st.plotly_chart(px.line(
+            student_df.sort_values("timestamp"),
+            x="timestamp",
+            y="grade_value",
+            color="username",
+            title="📈 Grade Trends by Student",
+            markers=True
+        ).update_yaxes(tickvals=[1, 2, 3, 4], ticktext=["D", "C", "B", "A"]), use_container_width=True)
+
+    with tab4:
         upload_and_index_pdf()
         if os.path.exists("uploaded_slides"):
             uploaded_files = os.listdir("uploaded_slides")
-            st.write("📁 Uploaded Slides:")
+            st.write("📁 Uploaded Slide Files:")
             for f in uploaded_files:
                 st.markdown(f"- `{f}`")
 
             st.write("📄 **Preview Uploaded Slide**")
-            selected_file = st.selectbox("Select a file", uploaded_files)
+            selected_file = st.selectbox("Select a file to preview", uploaded_files)
+
             if selected_file:
                 file_path = os.path.join("uploaded_slides", selected_file)
                 try:
