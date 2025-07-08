@@ -54,12 +54,41 @@ def display_tutor_ui():
     student_df["grade_value"] = student_df["grade"].map(grade_map)
 
     # KPI Metrics
+    def stat_card(icon, title, value, color="#ffffff"):
+    return f"""
+    <div style="
+        background-color: {color};
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 1px 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #ddd;
+        margin: 10px;
+        width: 100%;
+        max-width: 250px;
+        ">
+        <h4 style="margin: 0;">{icon} {title}</h4>
+        <p style="font-size: 1.8em; font-weight: bold; margin: 5px 0 0 0;">{value}</p>
+    </div>
+    """
+
+    # Use inside columns for alignment
     col1, col2, col3 = st.columns(3)
-    col1.metric("👨‍🎓 Total Students", len(student_df["username"].unique()))
-    avg_value = student_df["grade_value"].mean()
-    avg_letter = reverse_map.get(round(avg_value), "N/A")
-    col2.metric("📊 Avg Grade", f"{avg_value:.2f} ({avg_letter})")
-    col3.metric("❓ Avg Questions", f"{student_df['question_count'].mean():.2f}")
+
+    with col1:
+        st.markdown(stat_card("👨‍🎓", "Total Students", len(student_df)), unsafe_allow_html=True)
+
+    with col2:
+        st.markdown(stat_card("📊", "Avg Grade", f"{avg_value:.2f} ({avg_letter})"), unsafe_allow_html=True)
+
+    with col3:
+        st.markdown(stat_card("❓", "Avg Questions", f"{avg_questions:.2f}"), unsafe_allow_html=True)
+
+    #col1, col2, col3 = st.columns(3)
+    #col1.metric("👨‍🎓 Total Students", len(student_df["username"].unique()))
+    #avg_value = student_df["grade_value"].mean()
+    #avg_letter = reverse_map.get(round(avg_value), "N/A")
+    #col2.metric("📊 Avg Grade", f"{avg_value:.2f} ({avg_letter})")
+    #col3.metric("❓ Avg Questions", f"{student_df['question_count'].mean():.2f}")
 
     st.markdown("---")
     tab1, tab2, tab3, tab4 = st.tabs(["📋 Overview", "📈 Analysis", "🧠 Breakdown", "📚 Upload Slides"])
