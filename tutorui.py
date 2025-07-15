@@ -2,13 +2,13 @@ import sqlite3
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import json
 import openai
 import fitz
 import base64
 import collections
 import re
-import os
 from datetime import datetime
 from upload_slides import upload_and_index_pdf
 
@@ -17,22 +17,6 @@ db_path = "datab.db"
 conn = sqlite3.connect(db_path, check_same_thread=False)
 cursor = conn.cursor()
 client = openai.OpenAI()
-
-st.markdown(
-    """
-    <style>
-    .bordered-box {
-        border: 2px solid #4A90E2;   /* border color */
-        border-radius: 12px;          /* rounded corners */
-        padding: 12px;
-        text-align: center;
-        background-color: #f0f8ff;   /* optional: subtle background */
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 # Load student data
 def load_student_data():
@@ -69,27 +53,8 @@ def display_tutor_ui():
     reverse_map = {v: k for k, v in grade_map.items()}
     student_df["grade_value"] = student_df["grade"].map(grade_map)
 
-    # KPI Metrics
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown('<div class="bordered-box">', unsafe_allow_html=True)
-        st.metric("👨‍🎓 Total Students", len(student_df["username"].unique()))
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col2:
-        st.markdown('<div class="bordered-box">', unsafe_allow_html=True)
-        st.metric("📊 Avg Grade", f"{avg_value:.2f} ({avg_letter})")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col3:
-        st.markdown('<div class="bordered-box">', unsafe_allow_html=True)
-        st.metric("❓ Avg Questions", f"{student_df['question_count'].mean():.2f}")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # After all imports (e.g., after 'from datetime import datetime')
-        
     st.markdown("---")
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 Overview", "📈 Analysis", "🧠 Breakdown", "📚 Upload Slides"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Overview", "📈 Dashboard", "🧠 Breakdown", "📚 Upload Slides"])
 
     with tab1:
         st.subheader("📋 Student Overview")
@@ -109,38 +74,53 @@ def display_tutor_ui():
         st.dataframe(df, use_container_width=True)
 
     with tab2:
-        st.subheader("📈 Visual Insights")
+        st.subheader("📈 Interactive Performance Dashboard")
 
-        # Grade Distribution
-        grade_counts = student_df["grade"].value_counts().reindex(["A", "B", "C", "D"]).fillna(0)
-        st.plotly_chart(px.bar(
-            x=grade_counts.index,
-            y=grade_counts.values,
-            labels={"x": "Grade", "y": "Count"},
-            title="🎯 Grade Distribution"
-        ), use_container_width=True)
+        kpi1, kpi2, kpi3 = st.columns(3)
+        kpi1.metric("👨‍🎓 Total Students", len(student_df["username"].unique()))
+        avg_value = student_df["grade_value"].mean()
+        avg_letter = reverse_map.get(round(avg_value), "N/A")
+        kpi2.metric("📊 Avg Grade", f"{avg_value:.2f} ({avg_letter})")
+        kpi3.metric("❓ Avg Questions", f"{student_df['question_count'].mean():.2f}")
 
-        # Submission over time
-        time_series = student_df.groupby(student_df["timestamp"].dt.date).size()
-        st.plotly_chart(px.line(
-            x=time_series.index,
-            y=time_series.values,
-            labels={"x": "Date", "y": "Submissions"},
-            title="📅 Submissions Over Time"
-        ), use_container_width=True)
+        st.markdown("---")
 
-        # Scatter: Question Count vs Grade
-        st.plotly_chart(px.scatter(
+        col1, col2 = st.columns(2)
+        with col1:
+            grade_counts = student_df["grade"].value_counts().reindex(["A", "B", "C", "D"]).fillna(0)
+            fig_grade = px.pie(
+                names=grade_counts.index,
+                values=grade_counts.values,
+                title="🎯 Grade Distribution",
+                hole=0.4
+            )
+            st.plotly_chart(fig_grade, use_container_width=True)
+
+        with col2:
+            time_series = student_df.groupby(student_df["timestamp"].dt.date).size()
+            fig_time = px.line(
+                x=time_series.index,
+                y=time_series.values,
+                labels={"x": "Date", "y": "Submissions"},
+                title="📅 Submissions Over Time"
+            )
+            st.plotly_chart(fig_time, use_container_width=True)
+
+        st.markdown("### 🧠 Engagement vs Performance")
+        scatter_fig = px.scatter(
             student_df,
             x="question_count",
             y="grade_value",
             color="username",
-            title="🧠 Engagement vs Performance",
-            labels={"question_count": "Number of Questions", "grade_value": "Grade"},
+            title="📌 Questions Asked vs Grade",
+            labels={"question_count": "# Questions", "grade_value": "Grade"},
             hover_data=["username", "grade"]
-        ).update_yaxes(
-            tickvals=[1, 2, 3, 4], ticktext=["D", "C", "B", "A"]
-        ), use_container_width=True)
+        )
+        scatter_fig.update_yaxes(
+            tickvals=[1, 2, 3, 4],
+            ticktext=["D", "C", "B", "A"]
+        )
+        st.plotly_chart(scatter_fig, use_container_width=True)
 
     with tab3:
         st.subheader("🔍 Chatbot Interaction Breakdown")
@@ -149,12 +129,13 @@ def display_tutor_ui():
         question_words = re.findall(r"\b(how|what|why|when|where|who|can|do|is|should)\b", all_questions, re.IGNORECASE)
         question_freq = collections.Counter(question_words)
 
-        st.plotly_chart(px.bar(
+        fig_qtype = px.bar(
             x=list(question_freq.keys()),
             y=list(question_freq.values()),
             title="🗣️ Common Question Starters",
             labels={"x": "Question Word", "y": "Frequency"}
-        ), use_container_width=True)
+        )
+        st.plotly_chart(fig_qtype, use_container_width=True)
 
         st.plotly_chart(px.line(
             student_df.sort_values("timestamp"),
