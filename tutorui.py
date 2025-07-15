@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import streamlit as st
 import pandas as pd
@@ -9,7 +10,6 @@ import fitz
 import base64
 import collections
 import re
-import os
 from datetime import datetime
 from upload_slides import upload_and_index_pdf
 
